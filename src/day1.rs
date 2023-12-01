@@ -6,6 +6,7 @@ const INPUT: &str = include_str!("../res/day1.txt");
 
 #[tracing::instrument]
 pub fn part1() {
+    let start = std::time::Instant::now();
     let sum: u64 = INPUT
         .lines()
         .map(|line| {
@@ -15,12 +16,15 @@ pub fn part1() {
             AsciiDigit::parse([first, last])
         })
         .sum();
-    tracing::info!(sum, "result");
+    let end = std::time::Instant::now();
+    let took = format!("{} μs", (end - start).as_micros());
+    tracing::info!(took, sum, "result");
     assert_eq!(sum, 54601);
 }
 
 #[tracing::instrument]
 pub fn part2() {
+    let start = std::time::Instant::now();
     let sum: u64 = INPUT
         .lines()
         .map(|line| {
@@ -30,7 +34,9 @@ pub fn part2() {
             AsciiDigit::parse([first, last])
         })
         .sum();
-    tracing::info!(sum, "result");
+    let end = std::time::Instant::now();
+    let took = format!("{} μs", (end - start).as_micros());
+    tracing::info!(took, sum, "result");
     assert_eq!(sum, 54078);
 }
 
@@ -120,23 +126,31 @@ impl<'a> DigitIterator<'a> {
         }
     }
 
+    fn skip(&mut self, num: usize) {
+        self.left = &self.left[num..];
+    }
+
+    fn skip_back(&mut self, num: usize) {
+        self.left = &self.left[..self.left.len() - num];
+    }
+
     fn advance(&mut self) -> Option<AsciiDigit> {
         if let Some(char) = self.left.chars().next() {
             if char.is_ascii_digit() {
                 let digit = AsciiDigit::try_from(char).unwrap();
-                self.left = &self.left[1..];
+                self.skip(1);
                 return Some(digit);
             }
         }
         if self.search_str_representation {
             for digit in AsciiDigit::iter() {
                 if self.left.starts_with(digit.into_str()) {
-                    self.left = &self.left[digit.into_str().len()..];
+                    self.skip(digit.into_str().len());
                     return Some(digit);
                 }
             }
         }
-        self.left = &self.left[1..];
+        self.skip(1);
         None
     }
 
@@ -144,19 +158,19 @@ impl<'a> DigitIterator<'a> {
         if let Some(char) = self.left.chars().next_back() {
             if char.is_ascii_digit() {
                 let digit = AsciiDigit::try_from(char).unwrap();
-                self.left = &self.left[..self.left.len() - 1];
+                self.skip_back(1);
                 return Some(digit);
             }
         }
         if self.search_str_representation {
             for digit in AsciiDigit::iter() {
                 if self.left.ends_with(digit.into_str()) {
-                    self.left = &self.left[..digit.into_str().len()];
+                    self.skip_back(digit.into_str().len());
                     return Some(digit);
                 }
             }
         }
-        self.left = &self.left[..self.left.len() - 1];
+        self.skip_back(1);
         None
     }
 }
