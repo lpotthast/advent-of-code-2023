@@ -56,12 +56,32 @@ enum AsciiDigit {
 
 impl AsciiDigit {
     fn parse<const N: usize>(digits: [AsciiDigit; N]) -> u64 {
-        let bytes: SmallVec<[u8; 16]> =
-            SmallVec::from_iter(digits.into_iter().map(|d| d.into_ascii_byte()));
-        let s = std::str::from_utf8(&bytes).expect("not UTF-8");
-        s.parse::<u64>().expect("not a number")
+        match N {
+            1 => digits[0].into_u8() as u64,
+            2 => (10 * digits[0].into_u8() + digits[1].into_u8()) as u64,
+            _ => {
+                let bytes: SmallVec<[u8; 16]> =
+                SmallVec::from_iter(digits.into_iter().map(|d| d.into_ascii_byte()));
+                let s = std::str::from_utf8(&bytes).expect("not UTF-8");
+                s.parse::<u64>().expect("not a number")
+            }
+        }
     }
 
+    fn into_u8(self) -> u8 {
+        match self {
+            AsciiDigit::Zero => 0,
+            AsciiDigit::One => 1,
+            AsciiDigit::Two => 2,
+            AsciiDigit::Three => 3,
+            AsciiDigit::Four => 4,
+            AsciiDigit::Five => 5,
+            AsciiDigit::Six => 6,
+            AsciiDigit::Seven => 7,
+            AsciiDigit::Eight => 8,
+            AsciiDigit::Nine => 9,
+        }
+    }
     fn into_ascii_byte(self) -> u8 {
         match self {
             AsciiDigit::Zero => b'0',
