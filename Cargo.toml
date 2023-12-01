@@ -1,0 +1,12 @@
+[package]
+name = "aoc23"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.75"
+smallvec = "1.11.2"
+strum = { version = "0.25.0", features = ["strum_macros"] }
+strum_macros = "0.25.3"
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
