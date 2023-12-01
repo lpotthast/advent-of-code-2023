@@ -11,8 +11,8 @@ pub fn part1() {
         .map(|line| {
             tracing::debug!(line, "parsing");
             let first = DigitIterator::new(line, false).next().unwrap();
-            let second = DigitIterator::new(line, false).next_back().unwrap();
-            AsciiDigit::parse([first, second])
+            let last = DigitIterator::new(line, false).next_back().unwrap();
+            AsciiDigit::parse([first, last])
         })
         .sum();
     tracing::info!(sum, "result");
@@ -26,8 +26,8 @@ pub fn part2() {
         .map(|line| {
             tracing::debug!(line, "parsing");
             let first = DigitIterator::new(line, true).next().unwrap();
-            let second = DigitIterator::new(line, true).next_back().unwrap();
-            AsciiDigit::parse([first, second])
+            let last = DigitIterator::new(line, true).next_back().unwrap();
+            AsciiDigit::parse([first, last])
         })
         .sum();
     tracing::info!(sum, "result");
