@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.75"
+rayon = "1.8.0"
 smallvec = "1.11.2"
 strum = { version = "0.25.0", features = ["strum_macros"] }
 strum_macros = "0.25.3"

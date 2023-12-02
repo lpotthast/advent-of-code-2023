@@ -2,41 +2,37 @@ use smallvec::SmallVec;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
+use crate::util::timing::time;
+
 const INPUT: &str = include_str!("../res/day1.txt");
 
 #[tracing::instrument]
 pub fn part1() {
-    let start = std::time::Instant::now();
-    let sum: u64 = INPUT
-        .lines()
-        .map(|line| {
-            tracing::debug!(line, "parsing");
-            let first = DigitIterator::new(line, false).next().unwrap();
-            let last = DigitIterator::new(line, false).next_back().unwrap();
-            AsciiDigit::parse([first, last])
-        })
-        .sum();
-    let end = std::time::Instant::now();
-    let took = format!("{} μs", (end - start).as_micros());
-    tracing::info!(took, sum, "result");
+    let (sum, _) = time(|| {
+        INPUT
+            .lines()
+            .map(|line| {
+                let first = DigitIterator::new(line, false).next().unwrap();
+                let last = DigitIterator::new(line, false).next_back().unwrap();
+                AsciiDigit::parse([first, last])
+            })
+            .sum::<u64>()
+    });
     assert_eq!(sum, 54601);
 }
 
 #[tracing::instrument]
 pub fn part2() {
-    let start = std::time::Instant::now();
-    let sum: u64 = INPUT
-        .lines()
-        .map(|line| {
-            tracing::debug!(line, "parsing");
-            let first = DigitIterator::new(line, true).next().unwrap();
-            let last = DigitIterator::new(line, true).next_back().unwrap();
-            AsciiDigit::parse([first, last])
-        })
-        .sum();
-    let end = std::time::Instant::now();
-    let took = format!("{} μs", (end - start).as_micros());
-    tracing::info!(took, sum, "result");
+    let (sum, _) = time(|| {
+        INPUT
+            .lines()
+            .map(|line| {
+                let first = DigitIterator::new(line, true).next().unwrap();
+                let last = DigitIterator::new(line, true).next_back().unwrap();
+                AsciiDigit::parse([first, last])
+            })
+            .sum::<u64>()
+    });
     assert_eq!(sum, 54078);
 }
 
@@ -61,7 +57,7 @@ impl AsciiDigit {
             2 => (10 * digits[0].into_u8() + digits[1].into_u8()) as u64,
             _ => {
                 let bytes: SmallVec<[u8; 16]> =
-                SmallVec::from_iter(digits.into_iter().map(|d| d.into_ascii_byte()));
+                    SmallVec::from_iter(digits.into_iter().map(|d| d.into_ascii_byte()));
                 let s = std::str::from_utf8(&bytes).expect("not UTF-8");
                 s.parse::<u64>().expect("not a number")
             }
