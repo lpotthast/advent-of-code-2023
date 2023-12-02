@@ -2,38 +2,30 @@ use smallvec::SmallVec;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-use crate::util::timing::time;
-
 const INPUT: &str = include_str!("../res/day1.txt");
 
 #[tracing::instrument]
-pub fn part1() {
-    let (sum, _) = time(|| {
-        INPUT
-            .lines()
-            .map(|line| {
-                let first = DigitIterator::new(line, false).next().unwrap();
-                let last = DigitIterator::new(line, false).next_back().unwrap();
-                AsciiDigit::parse([first, last])
-            })
-            .sum::<u64>()
-    });
-    assert_eq!(sum, 54601);
+pub fn part1() -> u64 {
+    INPUT
+        .lines()
+        .map(|line| {
+            let first = DigitIterator::new(line, false).next().unwrap();
+            let last = DigitIterator::new(line, false).next_back().unwrap();
+            AsciiDigit::parse([first, last])
+        })
+        .sum::<u64>()
 }
 
 #[tracing::instrument]
-pub fn part2() {
-    let (sum, _) = time(|| {
-        INPUT
-            .lines()
-            .map(|line| {
-                let first = DigitIterator::new(line, true).next().unwrap();
-                let last = DigitIterator::new(line, true).next_back().unwrap();
-                AsciiDigit::parse([first, last])
-            })
-            .sum::<u64>()
-    });
-    assert_eq!(sum, 54078);
+pub fn part2() -> u64 {
+    INPUT
+        .lines()
+        .map(|line| {
+            let first = DigitIterator::new(line, true).next().unwrap();
+            let last = DigitIterator::new(line, true).next_back().unwrap();
+            AsciiDigit::parse([first, last])
+        })
+        .sum::<u64>()
 }
 
 #[derive(Debug, Clone, Copy, EnumIter)]

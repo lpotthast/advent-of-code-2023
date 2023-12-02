@@ -1,30 +1,22 @@
-use crate::util::timing::time;
-
 const INPUT: &str = include_str!("../res/day2.txt");
 
 #[tracing::instrument]
-pub fn part1() {
-    let (sum, _) = time(|| {
-        INPUT
-            .lines()
-            .map(|line| Game::parse(line))
-            .filter(|game| game.max_red <= 12 && game.max_green <= 13 && game.max_blue <= 14)
-            .map(|game| game.id)
-            .sum::<u32>()
-    });
-    assert_eq!(sum, 2317);
+pub fn part1() -> u32 {
+    INPUT
+        .lines()
+        .map(|line| Game::parse(line))
+        .filter(|game| game.max_red <= 12 && game.max_green <= 13 && game.max_blue <= 14)
+        .map(|game| game.id)
+        .sum::<u32>()
 }
 
 #[tracing::instrument]
-pub fn part2() {
-    let (sum, _) = time(|| {
-        INPUT
-            .lines()
-            .map(|line| Game::parse(line))
-            .map(|game| game.max_red as u32 * game.max_green as u32 * game.max_blue as u32)
-            .sum::<u32>()
-    });
-    assert_eq!(sum, 74804);
+pub fn part2() -> u32 {
+    INPUT
+        .lines()
+        .map(|line| Game::parse(line))
+        .map(|game| game.max_red as u32 * game.max_green as u32 * game.max_blue as u32)
+        .sum::<u32>()
 }
 
 #[derive(Debug)]
