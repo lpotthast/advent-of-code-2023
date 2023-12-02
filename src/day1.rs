@@ -70,6 +70,7 @@ impl AsciiDigit {
             AsciiDigit::Nine => 9,
         }
     }
+
     fn into_ascii_byte(self) -> u8 {
         match self {
             AsciiDigit::Zero => b'0',
@@ -85,7 +86,7 @@ impl AsciiDigit {
         }
     }
 
-    fn into_str(self) -> &'static str {
+    fn en_str_repr(self) -> &'static str {
         match self {
             AsciiDigit::Zero => "zero",
             AsciiDigit::One => "one",
@@ -152,8 +153,8 @@ impl<'a> DigitIterator<'a> {
         }
         if self.search_str_representation {
             for digit in AsciiDigit::iter() {
-                if self.left.starts_with(digit.into_str()) {
-                    self.skip(digit.into_str().len());
+                if self.left.starts_with(digit.en_str_repr()) {
+                    self.skip(digit.en_str_repr().len());
                     return Some(digit);
                 }
             }
@@ -172,8 +173,8 @@ impl<'a> DigitIterator<'a> {
         }
         if self.search_str_representation {
             for digit in AsciiDigit::iter() {
-                if self.left.ends_with(digit.into_str()) {
-                    self.skip_back(digit.into_str().len());
+                if self.left.ends_with(digit.en_str_repr()) {
+                    self.skip_back(digit.en_str_repr().len());
                     return Some(digit);
                 }
             }

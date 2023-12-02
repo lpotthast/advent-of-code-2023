@@ -3,6 +3,7 @@
         "ansi",
         "ascii",
         "Ascii",
+        "repr",
         "smallvec"
     ]
 }
