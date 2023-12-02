@@ -11,7 +11,7 @@ pub fn part1() -> u64 {
         .map(|line| {
             let first = DigitIterator::new(line, false).next().unwrap();
             let last = DigitIterator::new(line, false).next_back().unwrap();
-            AsciiDigit::parse([first, last])
+            AsciiDigit::into_u64([first, last])
         })
         .sum::<u64>()
 }
@@ -23,7 +23,7 @@ pub fn part2() -> u64 {
         .map(|line| {
             let first = DigitIterator::new(line, true).next().unwrap();
             let last = DigitIterator::new(line, true).next_back().unwrap();
-            AsciiDigit::parse([first, last])
+            AsciiDigit::into_u64([first, last])
         })
         .sum::<u64>()
 }
@@ -43,7 +43,7 @@ enum AsciiDigit {
 }
 
 impl AsciiDigit {
-    fn parse<const N: usize>(digits: [AsciiDigit; N]) -> u64 {
+    fn into_u64<const N: usize>(digits: [AsciiDigit; N]) -> u64 {
         match N {
             1 => digits[0].into_u8() as u64,
             2 => (10 * digits[0].into_u8() + digits[1].into_u8()) as u64,
