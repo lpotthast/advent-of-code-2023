@@ -41,8 +41,8 @@ impl Game {
             max_green: 0,
             max_blue: 0,
         };
-        for draw_raw in line.split(';') {
-            for part in draw_raw.trim().split(',').map(|it| it.trim()) {
+        for draw in line.split(';') {
+            for part in draw.trim().split(',').map(|it| it.trim()) {
                 let (num, color) = part.split_once(' ').expect("num color part");
                 let num = num.parse::<u8>().expect("draw amount to be a number");
                 match color {
