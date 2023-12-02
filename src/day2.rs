@@ -30,14 +30,13 @@ struct Game {
 impl Game {
     fn parse(line: &str) -> Self {
         let (game, line) = line.split_once(':').expect("at least one ':'");
-        let id = game
-            .split_ascii_whitespace()
-            .nth(1)
-            .expect("game id")
-            .parse::<u32>()
-            .expect("game id to be number");
         let mut game = Self {
-            id,
+            id: game
+                .split_ascii_whitespace()
+                .nth(1)
+                .expect("game id")
+                .parse::<u32>()
+                .expect("game id to be number"),
             max_red: 0,
             max_green: 0,
             max_blue: 0,
