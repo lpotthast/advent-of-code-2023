@@ -10,10 +10,16 @@ mod day2;
 fn main() {
     util::tracing::init(LevelFilter::INFO);
 
+    warmup();
     run(day1::part1, 54601);
     run(day1::part2, 54078);
     run(day2::part1, 2317);
     run(day2::part2, 74804);
+}
+
+fn warmup() {
+    let avg = bench(day1::part1);
+    tracing::info!(avg = format!("{} μs", avg.as_micros()), "warmup");
 }
 
 #[tracing::instrument(level = "INFO", skip_all, fields(name = std::any::type_name::<F>()))]

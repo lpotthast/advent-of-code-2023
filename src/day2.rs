@@ -42,13 +42,13 @@ impl Game {
             max_blue: 0,
         };
         for draw in line.split(';') {
-            for part in draw.trim().split(',').map(|it| it.trim()) {
+            for part in draw.split(',').map(|it| it.trim()) {
                 let (num, color) = part.split_once(' ').expect("num color part");
                 let num = num.parse::<u8>().expect("draw amount to be a number");
-                match color {
-                    "red" => game.max_red = u8::max(game.max_red, num),
-                    "green" => game.max_green = u8::max(game.max_green, num),
-                    "blue" => game.max_blue = u8::max(game.max_blue, num),
+                match color.chars().next().expect("non empty color str") {
+                    'r' => game.max_red = u8::max(game.max_red, num),
+                    'g' => game.max_green = u8::max(game.max_green, num),
+                    'b' => game.max_blue = u8::max(game.max_blue, num),
                     other => panic!("unexpected color: {other}"),
                 }
             }
