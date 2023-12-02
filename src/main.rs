@@ -1,6 +1,6 @@
 use ::tracing::level_filters::LevelFilter;
 
-use crate::util::timing::time;
+use crate::util::timing::bench;
 
 mod util;
 
@@ -10,15 +10,16 @@ mod day2;
 fn main() {
     util::tracing::init(LevelFilter::INFO);
 
-    let (sum, _) = time(day1::part1);
-    assert_eq!(sum, 54601);
+    run("day1::part1", day1::part1, 54601);
+    run("day1::part2", day1::part2, 54078);
+    run("day2::part1", day2::part1, 2317);
+    run("day2::part2", day2::part2, 74804);
+}
 
-    let (sum, _) = time(day1::part2);
-    assert_eq!(sum, 54078);
-
-    let (sum, _) = time(day2::part1);
-    assert_eq!(sum, 2317);
-
-    let (sum, _) = time(day2::part2);
-    assert_eq!(sum, 74804);
+#[tracing::instrument(level = "INFO", skip(fun, expected))]
+fn run<R: std::fmt::Debug + PartialEq>(name: &'static str, fun: impl Fn() -> R, expected: R) {
+    let result = fun();
+    let avg = bench(fun);
+    tracing::info!(avg = format!("{} μs", avg.as_micros()), ?result);
+    assert_eq!(result, expected);
 }
