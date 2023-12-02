@@ -25,7 +25,18 @@ pub fn part1() {
 
 #[tracing::instrument]
 pub fn part2() {
-    todo!()
+    let (sum, _) = time(|| {
+        INPUT
+            .lines()
+            .map(|line| Game::parse(line))
+            .map(|game| {
+                game.max_red.unwrap_or(0) as u32
+                    * game.max_green.unwrap_or(0) as u32
+                    * game.max_blue.unwrap_or(0) as u32
+            })
+            .sum::<u32>()
+    });
+    assert_eq!(sum, 74804);
 }
 
 #[derive(Debug)]
