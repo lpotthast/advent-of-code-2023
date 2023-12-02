@@ -4,7 +4,7 @@ const INPUT: &str = include_str!("../res/day2.txt");
 pub fn part1() -> u32 {
     INPUT
         .lines()
-        .map(|line| Game::parse(line))
+        .map(Game::parse)
         .filter(|game| game.max_red <= 12 && game.max_green <= 13 && game.max_blue <= 14)
         .map(|game| game.id)
         .sum::<u32>()
@@ -14,7 +14,7 @@ pub fn part1() -> u32 {
 pub fn part2() -> u32 {
     INPUT
         .lines()
-        .map(|line| Game::parse(line))
+        .map(Game::parse)
         .map(|game| game.max_red as u32 * game.max_green as u32 * game.max_blue as u32)
         .sum::<u32>()
 }
@@ -32,8 +32,7 @@ impl Game {
         let (game, line) = line.split_once(':').expect("at least one ':'");
         let id = game
             .split_ascii_whitespace()
-            .skip(1)
-            .next()
+            .nth(1)
             .expect("game id")
             .parse::<u32>()
             .expect("game id to be number");
