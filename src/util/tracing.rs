@@ -5,7 +5,7 @@ use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{Layer, Registry};
 
-pub fn init(level: LevelFilter) {
+pub(crate) fn init(level: LevelFilter) {
     fn build_log_filter(default_log_level: LevelFilter) -> Targets {
         Targets::new().with_default(default_log_level)
     }

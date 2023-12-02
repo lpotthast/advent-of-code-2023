@@ -1,17 +1,17 @@
 use std::time::Duration;
 
-#[derive(Debug)]
-pub struct BenchOptions {
-    pub times: usize,
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct BenchOptions {
+    pub(crate) times: u32,
 }
 
-pub fn bench<R>(fun: impl Fn() -> R) -> Duration {
+pub(crate) fn bench<R>(fun: impl Fn() -> R) -> Duration {
     bench_with_options(BenchOptions { times: 10000 }, fun)
 }
 
-pub fn bench_with_options<R>(options: BenchOptions, fun: impl Fn() -> R) -> Duration {
+pub(crate) fn bench_with_options<R>(options: BenchOptions, fun: impl Fn() -> R) -> Duration {
     let runs = options.times;
-    let mut times = Vec::with_capacity(runs);
+    let mut times = Vec::with_capacity(runs as usize);
     for _ in 0..runs {
         let start = std::time::Instant::now();
         let _ = fun();
@@ -19,5 +19,5 @@ pub fn bench_with_options<R>(options: BenchOptions, fun: impl Fn() -> R) -> Dura
         let duration = end - start;
         times.push(duration);
     }
-    times.iter().sum::<Duration>() / runs as u32
+    times.iter().sum::<Duration>() / runs
 }

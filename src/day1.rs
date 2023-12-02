@@ -9,8 +9,8 @@ pub fn part1() -> u64 {
     INPUT
         .lines()
         .map(|line| {
-            let first = DigitIterator::new(line, false).next().unwrap();
-            let last = DigitIterator::new(line, false).next_back().unwrap();
+            let first = DigitIterator::new(line, false).next().expect("first");
+            let last = DigitIterator::new(line, false).next_back().expect("last");
             AsciiDigit::into_u64([first, last])
         })
         .sum::<u64>()
@@ -21,8 +21,8 @@ pub fn part2() -> u64 {
     INPUT
         .lines()
         .map(|line| {
-            let first = DigitIterator::new(line, true).next().unwrap();
-            let last = DigitIterator::new(line, true).next_back().unwrap();
+            let first = DigitIterator::new(line, true).next().expect("first");
+            let last = DigitIterator::new(line, true).next_back().expect("last");
             AsciiDigit::into_u64([first, last])
         })
         .sum::<u64>()
@@ -30,74 +30,76 @@ pub fn part2() -> u64 {
 
 #[derive(Debug, Clone, Copy, EnumIter)]
 enum AsciiDigit {
-    Zero,
-    One,
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
-    Seven,
-    Eight,
-    Nine,
+    Zero = 0,
+    One = 1,
+    Two = 2,
+    Three = 3,
+    Four = 4,
+    Five = 5,
+    Six = 6,
+    Seven = 7,
+    Eight = 8,
+    Nine = 9,
 }
 
 impl AsciiDigit {
-    fn into_u64<const N: usize>(digits: [AsciiDigit; N]) -> u64 {
+    fn into_u64<const N: usize>(digits: [Self; N]) -> u64 {
         match N {
-            1 => digits[0].into_u8() as u64,
-            2 => (10 * digits[0].into_u8() + digits[1].into_u8()) as u64,
+            1 => u64::from(digits[0].into_u8()),
+            2 => u64::from(10 * digits[0].into_u8() + digits[1].into_u8()),
             _ => {
-                let bytes: SmallVec<[u8; 16]> =
-                    SmallVec::from_iter(digits.into_iter().map(|d| d.into_ascii_byte()));
+                let bytes = digits
+                    .into_iter()
+                    .map(Self::into_ascii_byte)
+                    .collect::<SmallVec<[u8; 16]>>();
                 let s = std::str::from_utf8(&bytes).expect("not UTF-8");
                 s.parse::<u64>().expect("not a number")
             }
         }
     }
 
-    fn into_u8(self) -> u8 {
+    const fn into_u8(self) -> u8 {
         match self {
-            AsciiDigit::Zero => 0,
-            AsciiDigit::One => 1,
-            AsciiDigit::Two => 2,
-            AsciiDigit::Three => 3,
-            AsciiDigit::Four => 4,
-            AsciiDigit::Five => 5,
-            AsciiDigit::Six => 6,
-            AsciiDigit::Seven => 7,
-            AsciiDigit::Eight => 8,
-            AsciiDigit::Nine => 9,
+            Self::Zero => 0,
+            Self::One => 1,
+            Self::Two => 2,
+            Self::Three => 3,
+            Self::Four => 4,
+            Self::Five => 5,
+            Self::Six => 6,
+            Self::Seven => 7,
+            Self::Eight => 8,
+            Self::Nine => 9,
         }
     }
 
-    fn into_ascii_byte(self) -> u8 {
+    const fn into_ascii_byte(self) -> u8 {
         match self {
-            AsciiDigit::Zero => b'0',
-            AsciiDigit::One => b'1',
-            AsciiDigit::Two => b'2',
-            AsciiDigit::Three => b'3',
-            AsciiDigit::Four => b'4',
-            AsciiDigit::Five => b'5',
-            AsciiDigit::Six => b'6',
-            AsciiDigit::Seven => b'7',
-            AsciiDigit::Eight => b'8',
-            AsciiDigit::Nine => b'9',
+            Self::Zero => b'0',
+            Self::One => b'1',
+            Self::Two => b'2',
+            Self::Three => b'3',
+            Self::Four => b'4',
+            Self::Five => b'5',
+            Self::Six => b'6',
+            Self::Seven => b'7',
+            Self::Eight => b'8',
+            Self::Nine => b'9',
         }
     }
 
-    fn en_str_repr(self) -> &'static str {
+    const fn en_str_repr(self) -> &'static str {
         match self {
-            AsciiDigit::Zero => "zero",
-            AsciiDigit::One => "one",
-            AsciiDigit::Two => "two",
-            AsciiDigit::Three => "three",
-            AsciiDigit::Four => "four",
-            AsciiDigit::Five => "five",
-            AsciiDigit::Six => "six",
-            AsciiDigit::Seven => "seven",
-            AsciiDigit::Eight => "eight",
-            AsciiDigit::Nine => "nine",
+            Self::Zero => "zero",
+            Self::One => "one",
+            Self::Two => "two",
+            Self::Three => "three",
+            Self::Four => "four",
+            Self::Five => "five",
+            Self::Six => "six",
+            Self::Seven => "seven",
+            Self::Eight => "eight",
+            Self::Nine => "nine",
         }
     }
 }
@@ -107,16 +109,16 @@ impl TryFrom<char> for AsciiDigit {
 
     fn try_from(value: char) -> Result<Self, Self::Error> {
         match value {
-            '0' => Ok(AsciiDigit::Zero),
-            '1' => Ok(AsciiDigit::One),
-            '2' => Ok(AsciiDigit::Two),
-            '3' => Ok(AsciiDigit::Three),
-            '4' => Ok(AsciiDigit::Four),
-            '5' => Ok(AsciiDigit::Five),
-            '6' => Ok(AsciiDigit::Six),
-            '7' => Ok(AsciiDigit::Seven),
-            '8' => Ok(AsciiDigit::Eight),
-            '9' => Ok(AsciiDigit::Nine),
+            '0' => Ok(Self::Zero),
+            '1' => Ok(Self::One),
+            '2' => Ok(Self::Two),
+            '3' => Ok(Self::Three),
+            '4' => Ok(Self::Four),
+            '5' => Ok(Self::Five),
+            '6' => Ok(Self::Six),
+            '7' => Ok(Self::Seven),
+            '8' => Ok(Self::Eight),
+            '9' => Ok(Self::Nine),
             other => Err(format!("Cannot convert '{other}' to AsciiDigit.")),
         }
     }
@@ -124,14 +126,14 @@ impl TryFrom<char> for AsciiDigit {
 
 struct DigitIterator<'a> {
     left: &'a str,
-    search_str_representation: bool,
+    search_str_repr: bool,
 }
 
 impl<'a> DigitIterator<'a> {
-    pub fn new(string: &'a str, search_str_representation: bool) -> Self {
+    const fn new(string: &'a str, search_str_repr: bool) -> Self {
         Self {
             left: string,
-            search_str_representation,
+            search_str_repr,
         }
     }
 
@@ -146,12 +148,12 @@ impl<'a> DigitIterator<'a> {
     fn advance(&mut self) -> Option<AsciiDigit> {
         if let Some(char) = self.left.chars().next() {
             if char.is_ascii_digit() {
-                let digit = AsciiDigit::try_from(char).unwrap();
+                let digit = AsciiDigit::try_from(char).expect("ascii digit");
                 self.skip(1);
                 return Some(digit);
             }
         }
-        if self.search_str_representation {
+        if self.search_str_repr {
             for digit in AsciiDigit::iter() {
                 if self.left.starts_with(digit.en_str_repr()) {
                     self.skip(digit.en_str_repr().len());
@@ -166,12 +168,12 @@ impl<'a> DigitIterator<'a> {
     fn advance_back(&mut self) -> Option<AsciiDigit> {
         if let Some(char) = self.left.chars().next_back() {
             if char.is_ascii_digit() {
-                let digit = AsciiDigit::try_from(char).unwrap();
+                let digit = AsciiDigit::try_from(char).expect("ascii digit");
                 self.skip_back(1);
                 return Some(digit);
             }
         }
-        if self.search_str_representation {
+        if self.search_str_repr {
             for digit in AsciiDigit::iter() {
                 if self.left.ends_with(digit.en_str_repr()) {
                     self.skip_back(digit.en_str_repr().len());
