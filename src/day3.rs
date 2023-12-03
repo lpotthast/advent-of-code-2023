@@ -42,11 +42,8 @@ impl<'a> Symbol<'a> {
 struct Symbols<'a> {
     line_iter: Lines<'a>,
 
-    /// Line above.
     above: Option<&'a str>,
-    /// Current line.
     current: &'a str,
-    /// Line below.
     below: Option<&'a str>,
 
     current_symbol_idx: usize,
@@ -127,7 +124,7 @@ impl<'a> Iterator for Symbols<'a> {
 }
 
 struct EngineParts {
-    pub(crate) parts: [Option<u64>; 6],
+    parts: [Option<u64>; 6],
     next_part: usize,
 }
 
