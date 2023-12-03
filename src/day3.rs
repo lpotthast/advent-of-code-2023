@@ -4,15 +4,23 @@ const INPUT: &str = include_str!("../res/day3.txt");
 
 #[tracing::instrument]
 pub fn part1() -> u64 {
-    EnginePartIterator::new(INPUT).sum()
+    Symbols::new(INPUT).map(|parts| parts.sum::<u64>()).sum()
 }
 
 #[tracing::instrument]
 pub fn part2() -> u64 {
-    0
+    Symbols::new(INPUT)
+        .filter(|parts| parts.symbol == '*' &&  parts.parts.iter().filter(|it| it.is_some()).count() == 2)
+        .map(|mut parts| {
+            let first = parts.next().unwrap();
+            let second = parts.next().unwrap();
+            first * second
+        })
+        .sum()
 }
 
-struct EnginePartIterator<'a> {
+
+struct Symbols<'a> {
     line_iter: Lines<'a>,
 
     /// Line above.
@@ -24,12 +32,9 @@ struct EnginePartIterator<'a> {
 
     current_symbol_idx: usize,
     current_symbol: Option<char>,
-
-    found: [Option<u64>; 6],
-    found_next: usize,
 }
 
-impl<'a> EnginePartIterator<'a> {
+impl<'a> Symbols<'a> {
     fn new(input: &'a str) -> Self {
         let mut line_iter = input.lines();
         let current = line_iter.next().expect("at least one line");
@@ -41,14 +46,11 @@ impl<'a> EnginePartIterator<'a> {
             below,
             current_symbol_idx: 0,
             current_symbol: None,
-            found: [None; 6],
-            found_next: 0,
         }
     }
 
     /// Returns false if end of input was reached / there is no more line.
     fn advance_to_next_line(&mut self) -> bool {
-        // tracing::info!(below = self.below, "advance_to_next_line");
         match self.below {
             Some(below) => {
                 self.above = Some(self.current);
@@ -62,11 +64,16 @@ impl<'a> EnginePartIterator<'a> {
             None => true,
         }
     }
+}
 
-    fn advance_to_next_symbol(&mut self) {
+impl<'a> Iterator for Symbols<'a> {
+    type Item = EngineParts;
+
+    fn next(&mut self) -> Option<Self::Item> {
         self.current_symbol = None;
-        self.found = [None; 6];
-        self.found_next = 0;
+        if self.current_symbol_idx < self.current.len() {
+            self.current_symbol_idx += 1;
+        }
 
         while self.current_symbol.is_none() {
             let rest = &self.current[self.current_symbol_idx..];
@@ -86,46 +93,63 @@ impl<'a> EnginePartIterator<'a> {
                 }
             }
         }
-        // tracing::info!(symbol = ?self.current_symbol, at_index = self.current_symbol_idx, "found");
 
-        let (above_a, above_b) = self.find_in_touching_line(self.above);
-        let left = self.find_left();
-        let right = self.find_right();
-        let (below_a, below_b) = self.find_in_touching_line(self.below);
+        match self.current_symbol {
+            Some(symbol) => Some(EngineParts::new(symbol, self.current_symbol_idx, self.above, self.current, self.below)),
+            None => None,
+        }
+    }
+}
 
-        self.found = [above_a, above_b, left, right, below_a, below_b];
-        // tracing::info!(found = ?self.found, "advance_to_next_symbol...");
 
+struct EngineParts {
+    pub(crate) symbol: char,
+    pub(crate) parts: [Option<u64>; 6],
+    next_part: usize,
+}
+
+impl EngineParts {
+    fn new<'a>(symbol: char, symbol_idx: usize, above: Option<&'a str>, current: &'a str, below: Option<&'a str>) -> Self {
+        let (above_a, above_b) = Self::find_in_touching_line(above, symbol_idx);
+        let left = Self::find_left(current, symbol_idx);
+        let right = Self::find_right(current, symbol_idx);
+        let (below_a, below_b) = Self::find_in_touching_line(below, symbol_idx);
+
+        Self {
+            symbol,
+            parts: [above_a, above_b, left, right, below_a, below_b],
+            next_part: 0,
+        }
     }
 
-    fn find_left(&self) -> Option<u64> {
-        if self.current_symbol_idx == 0 {
+    fn find_left(current: &str, symbol_idx: usize) -> Option<u64> {
+        if symbol_idx == 0 {
             return None;
         }
-        self.current[..self.current_symbol_idx]
+        current[..symbol_idx]
             .chars()
             .rev()
             .next()
             .filter(char::is_ascii_digit)
-            .map(|_| read_num(self.current, self.current_symbol_idx - 1))
+            .map(|_| read_num(current, symbol_idx - 1))
     }
 
-    fn find_right(&self) -> Option<u64> {
-        if self.current_symbol_idx == self.current.len() - 1 {
+    fn find_right(current: &str, symbol_idx: usize) -> Option<u64> {
+        if symbol_idx == current.len() - 1 {
             return None;
         }
-        self.current[self.current_symbol_idx + 1..]
+        current[symbol_idx + 1..]
             .chars()
             .next()
             .filter(char::is_ascii_digit)
-            .map(|_| read_num(self.current, self.current_symbol_idx + 1))
+            .map(|_| read_num(current, symbol_idx + 1))
     }
 
-    fn find_in_touching_line(&self, touching_line: Option<&str>) -> (Option<u64>, Option<u64>) {
+    fn find_in_touching_line(touching_line: Option<&str>, symbol_idx: usize) -> (Option<u64>, Option<u64>) {
         match touching_line {
             Some(touching_line) => {
-                let left = if self.current_symbol_idx > 0 { self.current_symbol_idx - 1 } else { self.current_symbol_idx };
-                let right = if self.current_symbol_idx < touching_line.len() - 1 { self.current_symbol_idx + 1 } else { self.current_symbol_idx };
+                let left = if symbol_idx > 0 { symbol_idx - 1 } else { symbol_idx };
+                let right = if symbol_idx < touching_line.len() - 1 { symbol_idx + 1 } else { symbol_idx };
                 let mut chars_touching = touching_line[left..=right].chars();
 
                 let l = chars_touching.next();
@@ -133,7 +157,7 @@ impl<'a> EnginePartIterator<'a> {
                 let r = chars_touching.next();
                 // tracing::info!(?l, ?m, ?r, "touching");
 
-                match m.filter(char::is_ascii_digit).map(|_m| read_num(touching_line, self.current_symbol_idx)) {
+                match m.filter(char::is_ascii_digit).map(|_m| read_num(touching_line, symbol_idx)) {
                     Some(only_possible_num) => (Some(only_possible_num), None),
                     None => {
                         let l = l.filter(char::is_ascii_digit).map(|_| read_num(touching_line, left));
@@ -147,31 +171,20 @@ impl<'a> EnginePartIterator<'a> {
     }
 }
 
-impl<'a> Iterator for EnginePartIterator<'a> {
+
+impl Iterator for EngineParts {
     type Item = u64;
 
     fn next(&mut self) -> Option<Self::Item> {
         let mut next_part = None;
-
         while next_part.is_none() {
-            if self.current_symbol.is_none() {
-                self.advance_to_next_symbol();
-                if self.current_symbol.is_none() {
-                    return None;
-                }
-            }
-
-            if self.found_next < 6 {
-                next_part = self.found[self.found_next];
-                self.found_next += 1;
+            if self.next_part < 6 {
+                next_part = self.parts[self.next_part];
+                self.next_part += 1;
             } else {
-                self.current_symbol = None;
-                if self.current_symbol_idx < self.current.len() {
-                    self.current_symbol_idx += 1;
-                }
+                break;
             }
         }
-
         next_part
     }
 }
@@ -202,14 +215,5 @@ mod test {
 
         assert_eq!(read_num("...123.456..", 5), 123);
         assert_eq!(read_num("...123.456..", 7), 456);
-    }
-    #[test]
-    fn test_chars_above() {
-        let above = "123456";
-        let idx = 3;
-        let mut chars_above = above[idx-1..=idx+1].chars();
-        assert_eq!(chars_above.next(), Some('3'));
-        assert_eq!(chars_above.next(), Some('4'));
-        assert_eq!(chars_above.next(), Some('5'));
     }
 }
