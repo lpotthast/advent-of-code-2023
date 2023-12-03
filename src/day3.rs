@@ -73,7 +73,6 @@ impl<'a> SlidingWindow<'a> {
 
 struct Symbols<'a> {
     win: SlidingWindow<'a>,
-    last_symbol: Option<char>,
     last_symbol_idx: usize,
 }
 
@@ -81,7 +80,6 @@ impl<'a> Symbols<'a> {
     fn new(input: &'a str) -> Self {
         Self {
             win: SlidingWindow::new(input),
-            last_symbol: None,
             last_symbol_idx: 0,
         }
     }
@@ -91,7 +89,6 @@ impl<'a> Iterator for Symbols<'a> {
     type Item = Symbol<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.last_symbol = None;
         if self.last_symbol_idx < self.win.current.len() {
             self.last_symbol_idx += 1;
         }
@@ -104,7 +101,6 @@ impl<'a> Iterator for Symbols<'a> {
                 .find(|(_i, c)| !matches!(c, '0'..='9' | '.'))
             {
                 self.last_symbol_idx += i;
-                self.last_symbol = Some(symbol);
                 return Some(Symbol {
                     symbol,
                     symbol_idx: self.last_symbol_idx,
