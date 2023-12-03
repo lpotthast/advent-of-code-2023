@@ -105,11 +105,10 @@ impl<'a> Iterator for Symbols<'a> {
                     current: self.win.current,
                     below: self.win.below,
                 });
-            } else {
-                self.last_symbol_idx = 0;
-                if self.win.advance() {
-                    return None;
-                }
+            }
+            self.last_symbol_idx = 0;
+            if self.win.advance() {
+                return None;
             }
         }
     }
