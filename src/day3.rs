@@ -172,7 +172,7 @@ fn find_left(line: &str, idx: usize) -> Option<u64> {
         .chars()
         .next_back()
         .filter(char::is_ascii_digit)
-        .map(|_| read_num(line, idx - 1))
+        .map(|_| parse_num(line, idx - 1))
 }
 
 /// Parse the full number to te right of `idx`.
@@ -184,7 +184,7 @@ fn find_right(line: &str, idx: usize) -> Option<u64> {
         .chars()
         .next()
         .filter(char::is_ascii_digit)
-        .map(|_| read_num(line, idx + 1))
+        .map(|_| parse_num(line, idx + 1))
 }
 
 /// Parse the full number(s) (potentially two) occurring around a three-character window
@@ -198,18 +198,22 @@ fn find_in_window(line: &str, idx: usize) -> (Option<u64>, Option<u64>) {
     let m = chars_touching.next();
     let r = chars_touching.next();
 
-    match m.filter(char::is_ascii_digit).map(|_m| read_num(line, idx)) {
+    match m.filter(char::is_ascii_digit).map(|_m| parse_num(line, idx)) {
         Some(only_possible_num) => (Some(only_possible_num), None),
         None => {
-            let l = l.filter(char::is_ascii_digit).map(|_| read_num(line, left));
-            let r = r.filter(char::is_ascii_digit).map(|_| read_num(line, right));
+            let l = l.filter(char::is_ascii_digit).map(|_| parse_num(line, left));
+            let r = r.filter(char::is_ascii_digit).map(|_| parse_num(line, right));
             (l, r)
         }
     }
 }
 
 /// Parse the full number occupying at least `input[idx]`.
-fn read_num(input: &str, idx: usize) -> u64 {
+///
+/// ```
+/// assert_eq!(parse_num("...123...", 4), 123)
+/// ```
+fn parse_num(input: &str, idx: usize) -> u64 {
     let min_idx = idx
         - input[..idx]
             .chars()
@@ -228,23 +232,23 @@ fn read_num(input: &str, idx: usize) -> u64 {
 
 #[cfg(test)]
 mod test {
-    use crate::day3::read_num;
+    use crate::day3::parse_num;
 
     #[test]
     fn test_read_num() {
-        assert_eq!(read_num("123...", 0), 123);
-        assert_eq!(read_num("123...", 1), 123);
-        assert_eq!(read_num("123...", 2), 123);
+        assert_eq!(parse_num("123...", 0), 123);
+        assert_eq!(parse_num("123...", 1), 123);
+        assert_eq!(parse_num("123...", 2), 123);
 
-        assert_eq!(read_num("...123", 3), 123);
-        assert_eq!(read_num("...123", 4), 123);
-        assert_eq!(read_num("...123", 5), 123);
+        assert_eq!(parse_num("...123", 3), 123);
+        assert_eq!(parse_num("...123", 4), 123);
+        assert_eq!(parse_num("...123", 5), 123);
 
-        assert_eq!(read_num("...123...", 3), 123);
-        assert_eq!(read_num("...123...", 4), 123);
-        assert_eq!(read_num("...123...", 5), 123);
+        assert_eq!(parse_num("...123...", 3), 123);
+        assert_eq!(parse_num("...123...", 4), 123);
+        assert_eq!(parse_num("...123...", 5), 123);
 
-        assert_eq!(read_num("...123.456..", 5), 123);
-        assert_eq!(read_num("...123.456..", 7), 456);
+        assert_eq!(parse_num("...123.456..", 5), 123);
+        assert_eq!(parse_num("...123.456..", 7), 456);
     }
 }
