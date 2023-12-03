@@ -88,9 +88,6 @@ impl<'a> Iterator for Symbols<'a> {
     type Item = Symbol<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.last_symbol_idx < self.win.current.len() {
-            self.last_symbol_idx += 1;
-        }
         loop {
             if let Some((i, symbol)) = self.win.current[self.last_symbol_idx..]
                 .chars()
@@ -98,16 +95,21 @@ impl<'a> Iterator for Symbols<'a> {
                 .find(|(_i, c)| !matches!(c, '0'..='9' | '.'))
             {
                 self.last_symbol_idx += i;
-                return Some(Symbol {
+                let symbol = Symbol {
                     symbol,
                     symbol_idx: self.last_symbol_idx,
                     above: self.win.above,
                     current: self.win.current,
                     below: self.win.below,
-                });
+                };
+                if self.last_symbol_idx < self.win.current.len() {
+                    self.last_symbol_idx += 1; // would otherwise find same symbol again!
+                }
+                return Some(symbol);
             }
             self.last_symbol_idx = 0;
-            if self.win.advance() {
+            let end_reached = self.win.advance();
+            if end_reached {
                 return None;
             }
         }
