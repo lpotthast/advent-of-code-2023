@@ -100,7 +100,6 @@ impl<'a> EnginePartIterator<'a> {
 
     fn find_left(&self) -> Option<u64> {
         if self.current_symbol_idx == 0 {
-            // tracing::info!("self.current_symbol_idx == 0, returning None");
             return None;
         }
         self.current[..self.current_symbol_idx]
@@ -112,7 +111,7 @@ impl<'a> EnginePartIterator<'a> {
     }
 
     fn find_right(&self) -> Option<u64> {
-        if self.current_symbol_idx == self.current.len() {
+        if self.current_symbol_idx == self.current.len() - 1 {
             return None;
         }
         self.current[self.current_symbol_idx + 1..]
@@ -132,7 +131,6 @@ impl<'a> EnginePartIterator<'a> {
                 let l = chars_touching.next();
                 let m = chars_touching.next();
                 let r = chars_touching.next();
-
                 // tracing::info!(?l, ?m, ?r, "touching");
 
                 match m.filter(char::is_ascii_digit).map(|_m| read_num(touching_line, self.current_symbol_idx)) {
@@ -179,14 +177,8 @@ impl<'a> Iterator for EnginePartIterator<'a> {
 }
 
 fn read_num(input: &str, idx: usize) -> u64 {
-    let min_idx = idx - match input[..idx].chars().rev().enumerate().skip_while(|(_i, c)| c.is_ascii_digit()).next().map(|(i, _c)| i) {
-        Some(i) => i,
-        None => idx,
-    };
-    let max_idx = idx + match input[idx..].chars().enumerate().skip_while(|(_i, c)| c.is_ascii_digit()).next().map(|(i, _c)| i) {
-        Some(i) => i,
-        None => input.len() - idx,
-    };
+    let min_idx = idx - input[..idx].chars().rev().enumerate().skip_while(|(_i, c)| c.is_ascii_digit()).next().map(|(i, _c)| i).unwrap_or(idx);
+    let max_idx = idx + input[idx..].chars().enumerate().skip_while(|(_i, c)| c.is_ascii_digit()).next().map(|(i, _c)| i).unwrap_or(input.len() - idx);
     str::parse::<u64>(&input[min_idx..max_idx]).unwrap()
 }
 
