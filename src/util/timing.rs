@@ -6,10 +6,10 @@ pub(crate) struct BenchOptions {
 }
 
 pub(crate) fn bench<R>(fun: impl Fn() -> R) -> Duration {
-    bench_with_options(BenchOptions { times: 10000 }, fun)
+    bench_with_options(fun, BenchOptions { times: 10000 })
 }
 
-pub(crate) fn bench_with_options<R>(options: BenchOptions, fun: impl Fn() -> R) -> Duration {
+pub(crate) fn bench_with_options<R>(fun: impl Fn() -> R, options: BenchOptions) -> Duration {
     let runs = options.times;
     let mut times = Vec::with_capacity(runs as usize);
     for _ in 0..runs {
