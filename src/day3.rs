@@ -39,29 +39,21 @@ impl<'a> Symbol<'a> {
     }
 }
 
-struct Symbols<'a> {
-    line_iter: Lines<'a>,
-
+struct SlidingWindow<'a> {
     above: Option<&'a str>,
     current: &'a str,
     below: Option<&'a str>,
-
-    current_symbol_idx: usize,
-    current_symbol: Option<char>,
+    line_iter: Lines<'a>,
 }
 
-impl<'a> Symbols<'a> {
+impl<'a> SlidingWindow<'a> {
     fn new(input: &'a str) -> Self {
         let mut line_iter = input.lines();
-        let current = line_iter.next().expect("at least one line");
-        let below = line_iter.next();
         Self {
-            line_iter,
             above: None,
-            current,
-            below,
-            current_symbol_idx: 0,
-            current_symbol: None,
+            current: line_iter.next().expect("at least one line"),
+            below: line_iter.next(),
+            line_iter,
         }
     }
 
@@ -72,12 +64,25 @@ impl<'a> Symbols<'a> {
                 self.above = Some(self.current);
                 self.current = below;
                 self.below = self.line_iter.next();
-
-                self.current_symbol_idx = 0;
-                self.current_symbol = None;
                 false
             }
             None => true,
+        }
+    }
+}
+
+struct Symbols<'a> {
+    win: SlidingWindow<'a>,
+    last_symbol: Option<char>,
+    last_symbol_idx: usize,
+}
+
+impl<'a> Symbols<'a> {
+    fn new(input: &'a str) -> Self {
+        Self {
+            win: SlidingWindow::new(input),
+            last_symbol: None,
+            last_symbol_idx: 0,
         }
     }
 }
@@ -86,37 +91,34 @@ impl<'a> Iterator for Symbols<'a> {
     type Item = Symbol<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.current_symbol = None;
-        if self.current_symbol_idx < self.current.len() {
-            self.current_symbol_idx += 1;
+        self.last_symbol = None;
+        if self.last_symbol_idx < self.win.current.len() {
+            self.last_symbol_idx += 1;
         }
 
-        while self.current_symbol.is_none() {
-            let rest = &self.current[self.current_symbol_idx..];
+        loop {
+            let rest = &self.win.current[self.last_symbol_idx..];
             if let Some((i, symbol)) = rest
                 .chars()
                 .enumerate()
                 .find(|(_i, c)| !matches!(c, '0'..='9' | '.'))
             {
-                self.current_symbol_idx += i;
-                self.current_symbol = Some(symbol);
+                self.last_symbol_idx += i;
+                self.last_symbol = Some(symbol);
+                return Some(Symbol {
+                    symbol,
+                    symbol_idx: self.last_symbol_idx,
+                    above: self.win.above,
+                    current: self.win.current,
+                    below: self.win.below,
+                });
             } else {
-                let end_reached = self.advance_to_next_line();
+                let end_reached = self.win.advance_to_next_line();
+                self.last_symbol_idx = 0;
                 if end_reached {
-                    break;
+                    return None;
                 }
             }
-        }
-
-        match self.current_symbol {
-            Some(symbol) => Some(Symbol {
-                symbol,
-                symbol_idx: self.current_symbol_idx,
-                above: self.above,
-                current: self.current,
-                below: self.below,
-            }),
-            None => None,
         }
     }
 }
@@ -133,78 +135,13 @@ impl EngineParts {
         current: &'a str,
         below: Option<&'a str>,
     ) -> Self {
-        let (above_a, above_b) = Self::find_in_touching_line(above, symbol_idx);
-        let left = Self::find_left(current, symbol_idx);
-        let right = Self::find_right(current, symbol_idx);
-        let (below_a, below_b) = Self::find_in_touching_line(below, symbol_idx);
-
+        let (above_a, above_b) = find_in_touching_line(above, symbol_idx);
+        let left = find_left(current, symbol_idx);
+        let right = find_right(current, symbol_idx);
+        let (below_a, below_b) = find_in_touching_line(below, symbol_idx);
         Self {
             parts: [above_a, above_b, left, right, below_a, below_b],
             next_part: 0,
-        }
-    }
-
-    fn find_left(current: &str, symbol_idx: usize) -> Option<u64> {
-        if symbol_idx == 0 {
-            return None;
-        }
-        current[..symbol_idx]
-            .chars()
-            .next_back()
-            .filter(char::is_ascii_digit)
-            .map(|_| read_num(current, symbol_idx - 1))
-    }
-
-    fn find_right(current: &str, symbol_idx: usize) -> Option<u64> {
-        if symbol_idx == current.len() - 1 {
-            return None;
-        }
-        current[symbol_idx + 1..]
-            .chars()
-            .next()
-            .filter(char::is_ascii_digit)
-            .map(|_| read_num(current, symbol_idx + 1))
-    }
-
-    fn find_in_touching_line(
-        touching_line: Option<&str>,
-        symbol_idx: usize,
-    ) -> (Option<u64>, Option<u64>) {
-        match touching_line {
-            Some(touching_line) => {
-                let left = if symbol_idx > 0 {
-                    symbol_idx - 1
-                } else {
-                    symbol_idx
-                };
-                let right = if symbol_idx < touching_line.len() - 1 {
-                    symbol_idx + 1
-                } else {
-                    symbol_idx
-                };
-                let mut chars_touching = touching_line[left..=right].chars();
-
-                let l = chars_touching.next();
-                let m = chars_touching.next();
-                let r = chars_touching.next();
-
-                match m
-                    .filter(char::is_ascii_digit)
-                    .map(|_m| read_num(touching_line, symbol_idx))
-                {
-                    Some(only_possible_num) => (Some(only_possible_num), None),
-                    None => {
-                        let l = l
-                            .filter(char::is_ascii_digit)
-                            .map(|_| read_num(touching_line, left));
-                        let r = r
-                            .filter(char::is_ascii_digit)
-                            .map(|_| read_num(touching_line, right));
-                        (l, r)
-                    }
-                }
-            }
-            None => (None, None),
         }
     }
 }
@@ -229,6 +166,70 @@ impl Iterator for EngineParts {
 impl ExactSizeIterator for EngineParts {
     fn len(&self) -> usize {
         self.parts.iter().filter(|it| it.is_some()).count()
+    }
+}
+
+fn find_left(current: &str, symbol_idx: usize) -> Option<u64> {
+    if symbol_idx == 0 {
+        return None;
+    }
+    current[..symbol_idx]
+        .chars()
+        .next_back()
+        .filter(char::is_ascii_digit)
+        .map(|_| read_num(current, symbol_idx - 1))
+}
+
+fn find_right(current: &str, symbol_idx: usize) -> Option<u64> {
+    if symbol_idx == current.len() - 1 {
+        return None;
+    }
+    current[symbol_idx + 1..]
+        .chars()
+        .next()
+        .filter(char::is_ascii_digit)
+        .map(|_| read_num(current, symbol_idx + 1))
+}
+
+fn find_in_touching_line(
+    touching_line: Option<&str>,
+    symbol_idx: usize,
+) -> (Option<u64>, Option<u64>) {
+    match touching_line {
+        Some(touching_line) => {
+            let left = if symbol_idx > 0 {
+                symbol_idx - 1
+            } else {
+                symbol_idx
+            };
+            let right = if symbol_idx < touching_line.len() - 1 {
+                symbol_idx + 1
+            } else {
+                symbol_idx
+            };
+            let mut chars_touching = touching_line[left..=right].chars();
+
+            let l = chars_touching.next();
+            let m = chars_touching.next();
+            let r = chars_touching.next();
+
+            match m
+                .filter(char::is_ascii_digit)
+                .map(|_m| read_num(touching_line, symbol_idx))
+            {
+                Some(only_possible_num) => (Some(only_possible_num), None),
+                None => {
+                    let l = l
+                        .filter(char::is_ascii_digit)
+                        .map(|_| read_num(touching_line, left));
+                    let r = r
+                        .filter(char::is_ascii_digit)
+                        .map(|_| read_num(touching_line, right));
+                    (l, r)
+                }
+            }
+        }
+        None => (None, None),
     }
 }
 
