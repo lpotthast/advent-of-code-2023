@@ -16,8 +16,8 @@ pub fn part2() -> u64 {
         .map(|symbol| symbol.engine_parts())
         .filter(|parts| parts.len() == 2)
         .map(|mut parts| {
-            let first = parts.next().unwrap();
-            let second = parts.next().unwrap();
+            let first = parts.next().expect("part 1");
+            let second = parts.next().expect("part 2");
             first * second
         })
         .sum()
@@ -93,15 +93,13 @@ impl<'a> Iterator for Symbols<'a> {
 
         while self.current_symbol.is_none() {
             let rest = &self.current[self.current_symbol_idx..];
-            // tracing::info!(rest, "rest");
-            // Search in the remainder of the current line.
-            let sym = rest.chars().enumerate().find(|(_i, c)| match c {
-                '0'..='9' | '.' => false,
-                _ => true,
-            });
-            if let Some((i, c)) = sym {
-                self.current_symbol_idx = self.current_symbol_idx + i;
-                self.current_symbol = Some(c);
+            if let Some((i, symbol)) = rest
+                .chars()
+                .enumerate()
+                .find(|(_i, c)| !matches!(c, '0'..='9' | '.'))
+            {
+                self.current_symbol_idx += i;
+                self.current_symbol = Some(symbol);
             } else {
                 let end_reached = self.advance_to_next_line();
                 if end_reached {
@@ -152,8 +150,7 @@ impl EngineParts {
         }
         current[..symbol_idx]
             .chars()
-            .rev()
-            .next()
+            .next_back()
             .filter(char::is_ascii_digit)
             .map(|_| read_num(current, symbol_idx - 1))
     }
@@ -190,7 +187,6 @@ impl EngineParts {
                 let l = chars_touching.next();
                 let m = chars_touching.next();
                 let r = chars_touching.next();
-                // tracing::info!(?l, ?m, ?r, "touching");
 
                 match m
                     .filter(char::is_ascii_digit)
@@ -242,19 +238,15 @@ fn read_num(input: &str, idx: usize) -> u64 {
             .chars()
             .rev()
             .enumerate()
-            .skip_while(|(_i, c)| c.is_ascii_digit())
-            .next()
-            .map(|(i, _c)| i)
-            .unwrap_or(idx);
+            .find(|(_i, c)| !c.is_ascii_digit())
+            .map_or(idx, |(i, _c)| i);
     let max_idx = idx
         + input[idx..]
             .chars()
             .enumerate()
-            .skip_while(|(_i, c)| c.is_ascii_digit())
-            .next()
-            .map(|(i, _c)| i)
-            .unwrap_or(input.len() - idx);
-    str::parse::<u64>(&input[min_idx..max_idx]).unwrap()
+            .find(|(_i, c)| !c.is_ascii_digit())
+            .map_or_else(|| input.len() - idx, |(i, _c)| i);
+    str::parse::<u64>(&input[min_idx..max_idx]).expect("number")
 }
 
 #[cfg(test)]

@@ -32,9 +32,12 @@ patterns_in_fns_without_body = "deny"
 rust_2018_idioms = "deny"
 trivial_casts = "deny"
 trivial_numeric_casts = "deny"
-unreachable_pub = "deny"
+#unreachable_pub = "deny"
 unsafe_op_in_unsafe_fn = "deny"
 unused_extern_crates = "deny"
+# overrides
+unreachable_pub = { level = "allow", priority = 1 }
+
 
 [lints.clippy]
 pedantic = "warn"
@@ -76,7 +79,8 @@ macro_use_imports = "warn"
 manual_ok_or = "warn"
 map_err_ignore = "warn"
 map_flatten = "warn"
-map_unwrap_or = "warn"
+map_unwrap_or = "allow"
+match_bool = "allow"
 match_on_vec_items = "warn"
 match_same_arms = "warn"
 match_wild_err_arm = "warn"
@@ -99,7 +103,7 @@ ref_option_ref = "warn"
 rest_pat_in_fully_bound_structs = "warn"
 same_functions_in_if_condition = "warn"
 semicolon_if_nothing_returned = "warn"
-single_match_else = "warn"
+single_match_else = { level = "allow", priority = 1 }
 string_add_assign = "warn"
 string_add = "warn"
 string_lit_as_bytes = "warn"
@@ -114,3 +118,8 @@ unwrap_used = "warn"
 use_debug = "warn"
 useless_transmute = "warn"
 verbose_file_reads = "warn"
+# overrides
+option_if_let_else = { level = "allow", priority = 1 }
+module_name_repetitions = { level = "allow", priority = 1 }
+must_use_candidate = { level = "allow", priority = 1 }
+wildcard_imports = { level = "allow", priority = 1 }
