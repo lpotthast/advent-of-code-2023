@@ -57,16 +57,15 @@ impl<'a> SlidingWindow<'a> {
         }
     }
 
-    /// Returns true if end of input was reached / there is no more line.
-    fn advance_to_next_line(&mut self) -> bool {
-        match self.below {
-            Some(below) => {
-                self.above = Some(self.current);
-                self.current = below;
-                self.below = self.line_iter.next();
-                false
-            }
-            None => true,
+    /// Returns true if end of input is already reached.
+    fn advance(&mut self) -> bool {
+        if let Some(below) = self.below {
+            self.above = Some(self.current);
+            self.current = below;
+            self.below = self.line_iter.next();
+            false
+        } else {
+            true
         }
     }
 }
@@ -92,10 +91,8 @@ impl<'a> Iterator for Symbols<'a> {
         if self.last_symbol_idx < self.win.current.len() {
             self.last_symbol_idx += 1;
         }
-
         loop {
-            let rest = &self.win.current[self.last_symbol_idx..];
-            if let Some((i, symbol)) = rest
+            if let Some((i, symbol)) = self.win.current[self.last_symbol_idx..]
                 .chars()
                 .enumerate()
                 .find(|(_i, c)| !matches!(c, '0'..='9' | '.'))
@@ -109,9 +106,8 @@ impl<'a> Iterator for Symbols<'a> {
                     below: self.win.below,
                 });
             } else {
-                let end_reached = self.win.advance_to_next_line();
                 self.last_symbol_idx = 0;
-                if end_reached {
+                if self.win.advance() {
                     return None;
                 }
             }
