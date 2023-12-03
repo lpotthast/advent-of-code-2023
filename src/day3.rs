@@ -65,7 +65,7 @@ impl<'a> Symbols<'a> {
         }
     }
 
-    /// Returns false if end of input was reached / there is no more line.
+    /// Returns true if end of input was reached / there is no more line.
     fn advance_to_next_line(&mut self) -> bool {
         match self.below {
             Some(below) => {
