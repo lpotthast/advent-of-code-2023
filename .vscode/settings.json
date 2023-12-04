@@ -3,6 +3,7 @@
         "ansi",
         "ascii",
         "Ascii",
+        "bitmask",
         "repr",
         "smallvec"
     ],

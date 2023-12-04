@@ -35,7 +35,7 @@ pub fn part2(input: &str) -> u64 {
 #[derive(Debug)]
 struct Card {
     id: u32,
-    winning: [bool; 100],
+    winning_bitmask: u128,
 }
 
 impl Card {
@@ -52,17 +52,14 @@ impl Card {
             .map(|(w, y)| (parse_numbers(w), parse_numbers(y)))
             .expect("at least one ':'");
 
-        let mut winning = [false; 100];
-        for num in winning_numbers {
-            winning[num as usize] = true;
-        }
+        let winning_bitmask: u128 = winning_numbers.fold(0u128, |bitmask, num| bitmask | (1 << num));
 
-        (Card { id, winning }, our_numbers)
+        (Card { id, winning_bitmask }, our_numbers)
     }
 
     fn is_winning(&self, num: u8) -> bool {
-        debug_assert!((0..=99).contains(&num));
-        self.winning[num as usize]
+        debug_assert!((0..=127).contains(&num));
+        self.winning_bitmask & (1 << num) != 0
     }
 }
 
