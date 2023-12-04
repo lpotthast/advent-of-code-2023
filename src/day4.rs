@@ -1,6 +1,5 @@
 const INPUT: &str = include_str!("../res/day4.txt");
 
-#[tracing::instrument]
 pub fn part1() -> u64 {
     INPUT
         .lines()
@@ -19,7 +18,6 @@ pub fn part1() -> u64 {
         .sum::<u64>()
 }
 
-#[tracing::instrument]
 pub fn part2() -> u64 {
     const N: usize = 206;
     let mut copies = [1u32; N];

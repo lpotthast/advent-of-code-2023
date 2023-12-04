@@ -2,14 +2,12 @@ use std::str::Lines;
 
 const INPUT: &str = include_str!("../res/day3_a.txt");
 
-#[tracing::instrument]
 pub fn part1() -> u64 {
     Symbols::new(INPUT)
         .map(|symbol| symbol.engine_parts().sum::<u64>())
         .sum()
 }
 
-#[tracing::instrument]
 pub fn part2() -> u64 {
     Symbols::new(INPUT)
         .filter(|symbol| symbol.symbol == '*')
