@@ -22,7 +22,6 @@ pub fn part2(input: &str) -> u64 {
 
     input.lines().map(Card::init).for_each(|(card, your_numbers)| {
         let idx = card.id as usize - 1;
-
         let copies_of_current_card = copies[idx];
 
         for offset in 1..=your_numbers.filter(|num| card.is_winning(*num)).count() {
@@ -62,6 +61,7 @@ impl Card {
     }
 
     fn is_winning(&self, num: u8) -> bool {
+        debug_assert!((0..=99).contains(&num));
         self.winning[num as usize]
     }
 }
