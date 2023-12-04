@@ -2,8 +2,8 @@ pub fn part1(input: &str) -> u64 {
     input
         .lines()
         .map(Card::init)
-        .map(|(card, your_numbers)| {
-            let mut winning_numbers = your_numbers.filter(|num| card.is_winning(*num));
+        .map(|(card, our_numbers)| {
+            let mut winning_numbers = our_numbers.filter(|num| card.is_winning(*num));
             let mut r = 0;
             if let Some(_first) = winning_numbers.next() {
                 r += 1;
@@ -47,7 +47,7 @@ impl Card {
             .parse::<u32>()
             .expect("card id to be number");
 
-        let (winning_numbers, your_numbers) = rest
+        let (winning_numbers, our_numbers) = rest
             .split_once('|')
             .map(|(w, y)| (parse_numbers(w), parse_numbers(y)))
             .expect("at least one ':'");
@@ -57,7 +57,7 @@ impl Card {
             winning[num as usize] = true;
         }
 
-        (Card { id, winning }, your_numbers)
+        (Card { id, winning }, our_numbers)
     }
 
     fn is_winning(&self, num: u8) -> bool {
