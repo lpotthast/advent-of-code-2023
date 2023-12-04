@@ -20,11 +20,11 @@ pub fn part2(input: &str) -> u64 {
     const N: usize = 206;
     let mut copies = [1u32; N];
 
-    input.lines().map(Card::init).for_each(|(card, your_numbers)| {
+    input.lines().map(Card::init).for_each(|(card, our_numbers)| {
         let idx = card.id as usize - 1;
         let copies_of_current_card = copies[idx];
 
-        for offset in 1..=your_numbers.filter(|num| card.is_winning(*num)).count() {
+        for offset in 1..=our_numbers.filter(|num| card.is_winning(*num)).count() {
             copies[usize::min(idx + offset, N - 1)] += copies_of_current_card;
         }
     });
@@ -69,4 +69,14 @@ fn parse_numbers(line: &str) -> impl Iterator<Item = u8> + '_ {
         2 => 10 * (num.as_bytes()[0] - b'0') + (num.as_bytes()[1] - b'0'),
         _ => panic!("Only 2-digit numbers are supported! Received: {num}"),
     })
+}
+
+#[cfg(test)]
+mod test {
+    use super::parse_numbers;
+
+    #[test]
+    fn test_parse_numbers() {
+        assert_eq!(vec![1, 2, 42, 99], parse_numbers(" 1  2 42   99  ").collect::<Vec<_>>())
+    }
 }
