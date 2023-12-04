@@ -27,13 +27,10 @@ pub fn part2() -> u64 {
     INPUT.lines().map(Card::init).for_each(|(card, your_numbers)| {
         let idx = card.id as usize - 1;
 
-        let copies_of_current = copies[idx];
+        let copies_of_current_card = copies[idx];
 
-        let num_winning_numbers = your_numbers.filter(|num| card.is_winning(*num)).count();
-
-        for offset in 1..=num_winning_numbers {
-            let i = usize::min(idx + offset, N - 1);
-            copies[i] += copies_of_current; // 1 times copies_of_current !
+        for offset in 1..=your_numbers.filter(|num| card.is_winning(*num)).count() {
+            copies[usize::min(idx + offset, N - 1)] += copies_of_current_card;
         }
     });
 
@@ -57,25 +54,20 @@ impl Card {
 
         let (winning_numbers, your_numbers) = rest
             .split_once('|')
-            .map(|(s, e)| (s.trim(), e.trim()))
+            .map(|(w, y)| {
+                (
+                    w.split_ascii_whitespace().map(|it| it.parse::<u32>().expect("number")),
+                    y.split_ascii_whitespace().map(|it| it.parse::<u32>().expect("number")),
+                )
+            })
             .expect("at least one ':'");
 
         let mut winning = [false; 100];
-        for num in winning_numbers
-            .split_ascii_whitespace()
-            .map(|it| it.parse::<u32>().expect("number"))
-        {
+        for num in winning_numbers {
             winning[num as usize] = true;
         }
 
-        let card = Card { id, winning };
-
-        (
-            card,
-            your_numbers
-                .split_ascii_whitespace()
-                .map(|it| it.parse::<u32>().expect("number")),
-        )
+        (Card { id, winning }, your_numbers)
     }
 
     fn is_winning(&self, num: u32) -> bool {
