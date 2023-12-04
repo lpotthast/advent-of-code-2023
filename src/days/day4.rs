@@ -67,9 +67,9 @@ impl Card {
 }
 
 fn parse_numbers(line: &str) -> impl Iterator<Item = u8> + '_ {
-    line.split_ascii_whitespace().map(|s| match s.len() {
-        1 => s.as_bytes()[0] - b'0',
-        2 => (s.as_bytes()[0] - b'0') * 10 + (s.as_bytes()[1] - b'0'),
-        _ => unreachable!("Not expected number: {}", s),
+    line.split_ascii_whitespace().map(|num| match num.len() {
+        1 => num.as_bytes()[0] - b'0',
+        2 => 10 * (num.as_bytes()[0] - b'0') + (num.as_bytes()[1] - b'0'),
+        _ => panic!("Only 2-digit numbers are supported! Received: {num}"),
     })
 }
