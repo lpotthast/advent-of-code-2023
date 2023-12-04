@@ -7,6 +7,7 @@ mod util;
 mod day1;
 mod day2;
 mod day3;
+mod day4;
 
 fn main() {
     util::tracing::init(LevelFilter::INFO);
@@ -18,6 +19,8 @@ fn main() {
     run(day2::part2, 74_804);
     run(day3::part1, 556_367);
     run(day3::part2, 89_471_771);
+    run(day4::part1, 23_028);
+    run(day4::part2, 9_236_992);
 }
 
 fn warmup() {
