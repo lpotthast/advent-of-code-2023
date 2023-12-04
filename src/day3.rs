@@ -1,6 +1,6 @@
 use std::str::Lines;
 
-const INPUT: &str = include_str!("../res/day3.txt");
+const INPUT: &str = include_str!("../res/day3_a.txt");
 
 #[tracing::instrument]
 pub fn part1() -> u64 {
@@ -190,13 +190,16 @@ fn find_right(line: &str, idx: usize) -> Option<u64> {
 /// Parse the full number(s) (potentially two) occurring around a three-character window
 /// whose middle index is `idx`.
 fn find_in_window(line: &str, idx: usize) -> (Option<u64>, Option<u64>) {
-    let left = if idx > 0 { idx - 1 } else { idx };
-    let right = if idx < line.len() - 1 { idx + 1 } else { idx };
+    let is_left_border = idx == 0;
+    let is_right_border = idx == line.len() - 1;
+
+    let left = if is_left_border { idx } else { idx - 1 };
+    let right = if is_right_border { idx } else { idx + 1 };
 
     let mut chars_touching = line[left..=right].chars();
-    let l = chars_touching.next();
+    let l = if is_left_border { None } else { chars_touching.next() };
     let m = chars_touching.next();
-    let r = chars_touching.next();
+    let r = if is_right_border { None } else { chars_touching.next() };
 
     match m.filter(char::is_ascii_digit).map(|_m| parse_num(line, idx)) {
         Some(only_possible_num) => (Some(only_possible_num), None),

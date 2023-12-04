@@ -17,8 +17,10 @@ fn main() {
     run(day1::part2, 54_078);
     run(day2::part1, 2_317);
     run(day2::part2, 74_804);
-    run(day3::part1, 556_367);
-    run(day3::part2, 89_471_771);
+    run(day3::part1, 556_367); // day3_a.txt
+    run(day3::part2, 89_471_771); // day3_a.txt
+    //run(day3::part1, 526_404); // day3_b.txt
+    //run(day3::part2, 84_399_773); // day3_b.txt
     run(day4::part1, 23_028);
     run(day4::part2, 9_236_992);
 }

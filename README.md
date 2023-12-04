@@ -18,3 +18,5 @@ to see proper benchmarking results.
 | day2::part2 | 22 μs |
 | day3::part1 | 35 μs |
 | day3::part2 | 28 μs |
+| day4::part1 | 38 μs |
+| day4::part2 | 35 μs |
