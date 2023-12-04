@@ -1,7 +1,5 @@
-const INPUT: &str = include_str!("../res/day4.txt");
-
-pub fn part1() -> u64 {
-    INPUT
+pub fn part1(input: &str) -> u64 {
+    input
         .lines()
         .map(Card::init)
         .map(|(card, your_numbers)| {
@@ -18,11 +16,11 @@ pub fn part1() -> u64 {
         .sum::<u64>()
 }
 
-pub fn part2() -> u64 {
+pub fn part2(input: &str) -> u64 {
     const N: usize = 206;
     let mut copies = [1u32; N];
 
-    INPUT.lines().map(Card::init).for_each(|(card, your_numbers)| {
+    input.lines().map(Card::init).for_each(|(card, your_numbers)| {
         let idx = card.id as usize - 1;
 
         let copies_of_current_card = copies[idx];
@@ -42,7 +40,7 @@ struct Card {
 }
 
 impl Card {
-    fn init<'a>(line: &'a str) -> (Self, impl Iterator<Item = u32> + 'a) {
+    fn init<'a>(line: &'a str) -> (Self, impl Iterator<Item = u8> + 'a) {
         let (card, rest) = line.split_once(':').expect("at least one ':'");
         let id = card
             .trim_start_matches("Card")
@@ -52,12 +50,7 @@ impl Card {
 
         let (winning_numbers, your_numbers) = rest
             .split_once('|')
-            .map(|(w, y)| {
-                (
-                    w.split_ascii_whitespace().map(|it| it.parse::<u32>().expect("number")),
-                    y.split_ascii_whitespace().map(|it| it.parse::<u32>().expect("number")),
-                )
-            })
+            .map(|(w, y)| (parse_numbers(w), parse_numbers(y)))
             .expect("at least one ':'");
 
         let mut winning = [false; 100];
@@ -68,7 +61,15 @@ impl Card {
         (Card { id, winning }, your_numbers)
     }
 
-    fn is_winning(&self, num: u32) -> bool {
+    fn is_winning(&self, num: u8) -> bool {
         self.winning[num as usize]
     }
+}
+
+fn parse_numbers(line: &str) -> impl Iterator<Item = u8> + '_ {
+    line.split_ascii_whitespace().map(|s| match s.len() {
+        1 => s.as_bytes()[0] - b'0',
+        2 => (s.as_bytes()[0] - b'0') * 10 + (s.as_bytes()[1] - b'0'),
+        _ => unreachable!("Not expected number: {}", s),
+    })
 }

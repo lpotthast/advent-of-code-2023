@@ -2,10 +2,8 @@ use smallvec::SmallVec;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-const INPUT: &str = include_str!("../res/day1.txt");
-
-pub fn part1() -> u64 {
-    INPUT
+pub fn part1(input: &str) -> u64 {
+    input
         .lines()
         .map(|line| {
             let first = DigitIterator::new(line, false).next().expect("first");
@@ -15,8 +13,8 @@ pub fn part1() -> u64 {
         .sum::<u64>()
 }
 
-pub fn part2() -> u64 {
-    INPUT
+pub fn part2(input: &str) -> u64 {
+    input
         .lines()
         .map(|line| {
             let first = DigitIterator::new(line, true).next().expect("first");

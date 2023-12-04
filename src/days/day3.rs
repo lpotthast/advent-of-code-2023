@@ -1,15 +1,13 @@
 use std::str::Lines;
 
-const INPUT: &str = include_str!("../res/day3_a.txt");
-
-pub fn part1() -> u64 {
-    Symbols::new(INPUT)
+pub fn part1(input: &str) -> u64 {
+    Symbols::new(input)
         .map(|symbol| symbol.engine_parts().sum::<u64>())
         .sum()
 }
 
-pub fn part2() -> u64 {
-    Symbols::new(INPUT)
+pub fn part2(input: &str) -> u64 {
+    Symbols::new(input)
         .filter(|symbol| symbol.symbol == '*')
         .map(|symbol| symbol.engine_parts())
         .filter(|parts| parts.len() == 2)
@@ -233,7 +231,7 @@ fn parse_num(input: &str, idx: usize) -> u64 {
 
 #[cfg(test)]
 mod test {
-    use crate::day3::parse_num;
+    use super::parse_num;
 
     #[test]
     fn test_read_num() {

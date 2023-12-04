@@ -1,7 +1,5 @@
-const INPUT: &str = include_str!("../res/day2.txt");
-
-pub fn part1() -> u64 {
-    INPUT
+pub fn part1(input: &str) -> u64 {
+    input
         .lines()
         .map(Game::parse)
         .filter(|game| game.max_red <= 12 && game.max_green <= 13 && game.max_blue <= 14)
@@ -9,8 +7,8 @@ pub fn part1() -> u64 {
         .sum::<u64>()
 }
 
-pub fn part2() -> u64 {
-    INPUT
+pub fn part2(input: &str) -> u64 {
+    input
         .lines()
         .map(Game::parse)
         .map(|game| game.max_red * game.max_green * game.max_blue)
