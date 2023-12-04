@@ -1,5 +1,12 @@
 # Advent of Code - 2023
 
+RUST based solutions for the [adventofcode - 2023](https://adventofcode.com/2023) problems,
+focusing on high performance and low memory usage while trying to still be comprehensible.
+
+Run all days using
+
+    cargo run (--release)
+
 Run benchmarks using
 
     cargo bench
@@ -18,3 +25,5 @@ benchmarks     fastest       │ slowest       │ median        │ mean       
 ├─ day4_part1  28.08 µs      │ 37.13 µs      │ 28.78 µs      │ 29.52 µs      │ 100     │ 100000
 ╰─ day4_part2  27.87 µs      │ 36.3 µs       │ 33.82 µs      │ 33.45 µs      │ 100     │ 100000
 ```
+
+on a Ryzen 7950X
