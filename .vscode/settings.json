@@ -1,10 +1,12 @@
 {
     "cSpell.words": [
+        "adventofcode",
         "ansi",
         "ascii",
         "Ascii",
         "bitmask",
         "repr",
+        "Ryzen",
         "smallvec"
     ],
     "rust-analyzer.linkedProjects": [

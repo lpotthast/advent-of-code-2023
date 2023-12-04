@@ -25,6 +25,10 @@ name = "benchmarks"
 path = "benchmarks/benchmarks.rs"
 harness = false
 
+[profile.flamegraph]
+inherits = "release"
+debug = true
+
 [dependencies]
 anyhow = "1.0.75"
 rayon = "1.8.0"
