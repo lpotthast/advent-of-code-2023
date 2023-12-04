@@ -208,10 +208,6 @@ fn find_in_window(line: &str, idx: usize) -> (Option<u64>, Option<u64>) {
 }
 
 /// Parse the full number occupying at least `input[idx]`.
-///
-/// ```
-/// assert_eq!(parse_num("...123...", 4), 123)
-/// ```
 fn parse_num(input: &str, idx: usize) -> u64 {
     let min_idx = idx
         - input[..idx]
