@@ -29,7 +29,7 @@ pub fn part2(input: &str) -> u64 {
         }
     });
 
-    copies.iter().sum::<u32>() as u64
+    u64::from(copies.into_iter().sum::<u32>())
 }
 
 #[derive(Debug)]
@@ -39,7 +39,7 @@ struct Card {
 }
 
 impl Card {
-    fn init<'a>(line: &'a str) -> (Self, impl Iterator<Item = u8> + 'a) {
+    fn init(line: &str) -> (Self, impl Iterator<Item = u8> + '_) {
         let (card, rest) = line.split_once(':').expect("at least one ':'");
         let id = card
             .trim_start_matches("Card")
@@ -54,7 +54,7 @@ impl Card {
 
         let winning_bitmask: u128 = winning_numbers.fold(0u128, |bitmask, num| bitmask | (1 << num));
 
-        (Card { id, winning_bitmask }, our_numbers)
+        (Self { id, winning_bitmask }, our_numbers)
     }
 
     fn is_winning(&self, num: u8) -> bool {
