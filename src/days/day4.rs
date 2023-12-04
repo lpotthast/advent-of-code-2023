@@ -2,16 +2,11 @@ pub fn part1(input: &str) -> u64 {
     input
         .lines()
         .map(Card::init)
-        .map(|(card, our_numbers)| {
-            let mut winning_numbers = our_numbers.filter(|num| card.is_winning(*num));
-            let mut r = 0;
-            if let Some(_first) = winning_numbers.next() {
-                r += 1;
-            }
-            for _num in winning_numbers {
-                r *= 2;
-            }
-            r
+        .map(|(card, our_numbers)| our_numbers.filter(|num| card.is_winning(*num)).count())
+        .map(|count| u32::try_from(count).expect("count to be in u32 range"))
+        .map(|count| match count {
+            0 => 0,
+            count => 2u64.pow(count - 1),
         })
         .sum::<u64>()
 }
@@ -24,7 +19,8 @@ pub fn part2(input: &str) -> u64 {
         let idx = card.id as usize - 1;
         let copies_of_current_card = copies[idx];
 
-        for offset in 1..=our_numbers.filter(|num| card.is_winning(*num)).count() {
+        let count_winning = our_numbers.filter(|num| card.is_winning(*num)).count();
+        for offset in 1..=count_winning {
             copies[usize::min(idx + offset, N - 1)] += copies_of_current_card;
         }
     });
