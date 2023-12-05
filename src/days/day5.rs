@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use smallvec::SmallVec;
 use std::{ops::Range, str::Lines};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
@@ -47,70 +48,6 @@ pub fn part2(input: &str) -> Option<i64> {
         })
 }
 
-fn read_input(input: &str, seed_interpretation: SeedInterpretation) -> (Seeds, Config) {
-    let mut seeds: Option<Seeds> = None;
-    let mut seed_to_soil: Option<Projections> = None;
-    let mut soil_to_fertilizer: Option<Projections> = None;
-    let mut fertilizer_to_water: Option<Projections> = None;
-    let mut water_to_light: Option<Projections> = None;
-    let mut light_to_temperature: Option<Projections> = None;
-    let mut temperature_to_humidity: Option<Projections> = None;
-    let mut humidity_to_location: Option<Projections> = None;
-
-    for part in InputParser::new(input, seed_interpretation) {
-        match part {
-            InputPart::Seeds(single) => seeds = Some(Seeds::Single(single)),
-            InputPart::SeedRanges(ranges) => seeds = Some(Seeds::Ranges(ranges)),
-            InputPart::Projections(mappings) => match mappings.ty {
-                ProjectionType::SeedToSoil => seed_to_soil = Some(mappings),
-                ProjectionType::SoilToFertilizer => soil_to_fertilizer = Some(mappings),
-                ProjectionType::FertilizerToWater => fertilizer_to_water = Some(mappings),
-                ProjectionType::WaterToLight => water_to_light = Some(mappings),
-                ProjectionType::LightToTemperature => light_to_temperature = Some(mappings),
-                ProjectionType::TemperatureToHumidity => temperature_to_humidity = Some(mappings),
-                ProjectionType::HumidityToLocation => humidity_to_location = Some(mappings),
-            },
-        }
-    }
-    (
-        seeds.unwrap(),
-        Config {
-            seed_to_soil: seed_to_soil.unwrap(),
-            soil_to_fertilizer: soil_to_fertilizer.unwrap(),
-            fertilizer_to_water: fertilizer_to_water.unwrap(),
-            water_to_light: water_to_light.unwrap(),
-            light_to_temperature: light_to_temperature.unwrap(),
-            temperature_to_humidity: temperature_to_humidity.unwrap(),
-            humidity_to_location: humidity_to_location.unwrap(),
-        },
-    )
-}
-
-#[derive(Debug, Clone, Copy, EnumIter)]
-enum ProjectionType {
-    SeedToSoil,
-    SoilToFertilizer,
-    FertilizerToWater,
-    WaterToLight,
-    LightToTemperature,
-    TemperatureToHumidity,
-    HumidityToLocation,
-}
-
-impl ProjectionType {
-    const fn block_name(self) -> &'static str {
-        match self {
-            Self::SeedToSoil => "seed-to-soil",
-            Self::SoilToFertilizer => "soil-to-fertilizer",
-            Self::FertilizerToWater => "fertilizer-to-water",
-            Self::WaterToLight => "water-to-light",
-            Self::LightToTemperature => "light-to-temperature",
-            Self::TemperatureToHumidity => "temperature-to-humidity",
-            Self::HumidityToLocation => "humidity-to-location",
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy)]
 struct MyRange {
     start: i64,
@@ -141,7 +78,7 @@ impl Projection {
 #[derive(Debug)]
 struct Projections {
     ty: ProjectionType,
-    projections: Vec<Projection>,
+    projections: SmallVec<[Projection; 32]>,
 }
 
 /// seed-to-soil map:
@@ -159,8 +96,8 @@ impl Projections {
     }
 
     /// Project a range.
-    fn project_range(&self, source_range: MyRange) -> Vec<Projection> {
-        let mut projections = Vec::new();
+    fn project_range(&self, source_range: MyRange) -> SmallVec<[Projection; 32]> {
+        let mut projections = SmallVec::<[Projection; 32]>::new();
         for mapping in &self.projections {
             // !!!
             let target_range = mapping.source_range;
@@ -186,7 +123,7 @@ impl Projections {
 
         // Add identity projections. Every range not covered with offset 0.
         let mut next = source_range.start;
-        let mut filler = Vec::new();
+        let mut filler = SmallVec::<[Projection; 32]>::new();
         for p in &projections {
             if p.source_range.start > next {
                 let identity = Projection {
@@ -207,8 +144,8 @@ impl Projections {
         projections
     }
 
-    fn project_projections(&self, source_projections: Vec<Projection>) -> Vec<Projection> {
-        let mut projections = Vec::new();
+    fn project_projections(&self, source_projections: SmallVec<[Projection; 32]>) -> SmallVec<[Projection; 32]> {
+        let mut projections = SmallVec::<[Projection; 32]>::new();
         for source_projection in source_projections {
             for projection in self.project_range(source_projection.target_range()) {
                 projections.push(projection);
@@ -222,7 +159,7 @@ impl Projections {
 fn overlaps(range_a: &MyRange, range_b: &MyRange) -> bool {
     let max_start = i64::max(range_a.start, range_b.start);
     let min_end = i64::min(range_a.end, range_b.end);
-    max_start < min_end // TODO <= ??
+    max_start < min_end
 }
 
 #[derive(Debug)]
@@ -244,17 +181,6 @@ impl Seeds {
             Self::Ranges(ranges) => ranges,
         }
     }
-}
-
-#[derive(Debug)]
-struct Config {
-    seed_to_soil: Projections,
-    soil_to_fertilizer: Projections,
-    fertilizer_to_water: Projections,
-    water_to_light: Projections,
-    light_to_temperature: Projections,
-    temperature_to_humidity: Projections,
-    humidity_to_location: Projections,
 }
 
 #[derive(Debug)]
@@ -331,7 +257,7 @@ impl<'a> InputParser<'a> {
     fn start_block(&mut self, ty: ProjectionType) {
         self.in_block = Some(Projections {
             ty,
-            projections: Vec::new(),
+            projections: SmallVec::<[Projection; 32]>::new(),
         });
     }
 
@@ -392,6 +318,81 @@ impl<'a> Iterator for InputParser<'a> {
                     return None;
                 }
             }
+        }
+    }
+}
+
+#[derive(Debug)]
+struct Config {
+    seed_to_soil: Projections,
+    soil_to_fertilizer: Projections,
+    fertilizer_to_water: Projections,
+    water_to_light: Projections,
+    light_to_temperature: Projections,
+    temperature_to_humidity: Projections,
+    humidity_to_location: Projections,
+}
+
+fn read_input(input: &str, seed_interpretation: SeedInterpretation) -> (Seeds, Config) {
+    let mut seeds: Option<Seeds> = None;
+    let mut seed_to_soil: Option<Projections> = None;
+    let mut soil_to_fertilizer: Option<Projections> = None;
+    let mut fertilizer_to_water: Option<Projections> = None;
+    let mut water_to_light: Option<Projections> = None;
+    let mut light_to_temperature: Option<Projections> = None;
+    let mut temperature_to_humidity: Option<Projections> = None;
+    let mut humidity_to_location: Option<Projections> = None;
+
+    for part in InputParser::new(input, seed_interpretation) {
+        match part {
+            InputPart::Seeds(single) => seeds = Some(Seeds::Single(single)),
+            InputPart::SeedRanges(ranges) => seeds = Some(Seeds::Ranges(ranges)),
+            InputPart::Projections(mappings) => match mappings.ty {
+                ProjectionType::SeedToSoil => seed_to_soil = Some(mappings),
+                ProjectionType::SoilToFertilizer => soil_to_fertilizer = Some(mappings),
+                ProjectionType::FertilizerToWater => fertilizer_to_water = Some(mappings),
+                ProjectionType::WaterToLight => water_to_light = Some(mappings),
+                ProjectionType::LightToTemperature => light_to_temperature = Some(mappings),
+                ProjectionType::TemperatureToHumidity => temperature_to_humidity = Some(mappings),
+                ProjectionType::HumidityToLocation => humidity_to_location = Some(mappings),
+            },
+        }
+    }
+    (
+        seeds.unwrap(),
+        Config {
+            seed_to_soil: seed_to_soil.unwrap(),
+            soil_to_fertilizer: soil_to_fertilizer.unwrap(),
+            fertilizer_to_water: fertilizer_to_water.unwrap(),
+            water_to_light: water_to_light.unwrap(),
+            light_to_temperature: light_to_temperature.unwrap(),
+            temperature_to_humidity: temperature_to_humidity.unwrap(),
+            humidity_to_location: humidity_to_location.unwrap(),
+        },
+    )
+}
+
+#[derive(Debug, Clone, Copy, EnumIter)]
+enum ProjectionType {
+    SeedToSoil,
+    SoilToFertilizer,
+    FertilizerToWater,
+    WaterToLight,
+    LightToTemperature,
+    TemperatureToHumidity,
+    HumidityToLocation,
+}
+
+impl ProjectionType {
+    const fn block_name(self) -> &'static str {
+        match self {
+            Self::SeedToSoil => "seed-to-soil",
+            Self::SoilToFertilizer => "soil-to-fertilizer",
+            Self::FertilizerToWater => "fertilizer-to-water",
+            Self::WaterToLight => "water-to-light",
+            Self::LightToTemperature => "light-to-temperature",
+            Self::TemperatureToHumidity => "temperature-to-humidity",
+            Self::HumidityToLocation => "humidity-to-location",
         }
     }
 }
