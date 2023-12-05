@@ -81,11 +81,7 @@ struct Projections {
     projections: SmallVec<[Projection; 32]>,
 }
 
-/// seed-to-soil map:
-/// 50 98 2  // source - 48 if >= 98 and < 100
-/// 52 50 48 // source + 2  if >= 50 and < 98
 impl Projections {
-    /// Project a range of size 1.
     fn project(&self, value: i64) -> i64 {
         for mapping in &self.projections {
             if mapping.source_range.range().contains(&value) {
@@ -95,18 +91,14 @@ impl Projections {
         value
     }
 
-    /// Project a range.
     fn project_range(&self, source_range: MyRange) -> SmallVec<[Projection; 32]> {
         let mut projections = SmallVec::<[Projection; 32]>::new();
         for mapping in &self.projections {
-            // !!!
-            let target_range = mapping.source_range;
-            if overlaps(&source_range, &target_range) {
-                // tracing::info!(?source_range, ?target_range, "overlaps");
+            if let Some((max_start, min_end)) = overlaps(&source_range, &mapping.source_range) {
                 projections.push(Projection {
                     source_range: MyRange {
-                        start: i64::max(mapping.source_range.start, source_range.start),
-                        end: i64::min(mapping.source_range.end, source_range.end),
+                        start: max_start,
+                        end: min_end,
                     },
                     offset: mapping.offset,
                 });
@@ -151,15 +143,18 @@ impl Projections {
                 projections.push(projection);
             }
         }
-        projections.sort_by_key(|p| p.source_range.start);
+        //projections.sort_by_key(|p| p.source_range.start);
         projections
     }
 }
 
-fn overlaps(range_a: &MyRange, range_b: &MyRange) -> bool {
+fn overlaps(range_a: &MyRange, range_b: &MyRange) -> Option<(i64, i64)> {
     let max_start = i64::max(range_a.start, range_b.start);
     let min_end = i64::min(range_a.end, range_b.end);
-    max_start < min_end
+    match max_start < min_end {
+        true => Some((max_start, min_end)),
+        false => None,
+    }
 }
 
 #[derive(Debug)]
