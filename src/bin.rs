@@ -2,7 +2,7 @@ use lib::days::*;
 
 const INPUT_D1: &str = include_str!("../res/day1.txt");
 const INPUT_D2: &str = include_str!("../res/day2.txt");
-const INPUT_D3: &str = include_str!("../res/day3_a.txt");
+const INPUT_D3: &str = include_str!("../res/day3.txt");
 const INPUT_D4: &str = include_str!("../res/day4.txt");
 const INPUT_D5: &str = include_str!("../res/day5.txt");
 
