@@ -28,11 +28,12 @@ pub fn part2(input: &str) -> Option<i64> {
         .expect_ranges()
         .into_iter()
         .fold(None, |prev_lowest_location, seed_range| {
-            let soil_projections = config.seed_to_soil.project_range(seed_range);
-            let fertilizer_projections = config.soil_to_fertilizer.project_projections(soil_projections);
-            let water_projections = config.fertilizer_to_water.project_projections(fertilizer_projections);
-            let light_projections = config.water_to_light.project_projections(water_projections);
-            let temperature_projections = config.light_to_temperature.project_projections(light_projections);
+            let mut to_soil = SmallVec::<[Projection; 32]>::new();
+            config.seed_to_soil.project_range(seed_range, &mut to_soil);
+            let to_fertilizer = config.soil_to_fertilizer.project_projections(to_soil);
+            let to_water = config.fertilizer_to_water.project_projections(to_fertilizer);
+            let to_light = config.water_to_light.project_projections(to_water);
+            let temperature_projections = config.light_to_temperature.project_projections(to_light);
             let humidity_projections = config
                 .temperature_to_humidity
                 .project_projections(temperature_projections);
@@ -100,23 +101,22 @@ impl Projections {
         value
     }
 
-    fn project_range(&self, source_range: MyRange) -> SmallVec<[Projection; 32]> {
-        let mut projections = SmallVec::<[Projection; 32]>::new();
+    fn project_range(&self, source_range: MyRange, out: &mut SmallVec<[Projection; 32]>) {
         for mapping in &self.projections {
             if let Some((max_start, min_end)) = source_range.overlaps(&mapping.source_range) {
-                projections.push(Projection {
+                out.push(Projection {
                     source_range: MyRange {
                         start: max_start,
                         end: min_end,
                     },
                     offset: mapping.offset,
                 });
-                projections.sort_by_key(|p| p.source_range.start);
+                out.sort_by_key(|p| p.source_range.start);
             }
         }
 
-        if projections.is_empty() {
-            projections.push(Projection {
+        if out.is_empty() {
+            out.push(Projection {
                 source_range,
                 offset: 0,
             })
@@ -125,7 +125,7 @@ impl Projections {
         // Add identity projections. Every range not covered with offset 0.
         let mut next = source_range.start;
         let mut filler = SmallVec::<[Projection; 32]>::new();
-        for p in &projections {
+        for p in out.as_ref() {
             if p.source_range.start > next {
                 let identity = Projection {
                     source_range: MyRange {
@@ -139,18 +139,16 @@ impl Projections {
             next = p.source_range.end;
         }
 
-        projections.append(&mut filler);
-        projections.sort_by_key(|p| p.source_range.start);
-
-        projections
+        out.append(&mut filler);
+        out.sort_by_key(|p| p.source_range.start);
     }
 
     fn project_projections(&self, source_projections: SmallVec<[Projection; 32]>) -> SmallVec<[Projection; 32]> {
         let mut projections = SmallVec::<[Projection; 32]>::new();
+        let mut out = SmallVec::<[Projection; 32]>::new();
         for source_projection in source_projections {
-            for projection in self.project_range(source_projection.target_range()) {
-                projections.push(projection);
-            }
+            self.project_range(source_projection.target_range(), &mut out);
+            projections.append(&mut out);
         }
         //projections.sort_by_key(|p| p.source_range.start);
         projections
