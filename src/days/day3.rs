@@ -19,6 +19,22 @@ pub fn part2(input: &str) -> u64 {
         .sum()
 }
 
+/*
+// TODO: This would be an optimization...
+pub fn part2_opt (input: &str) -> u64 {
+    Symbols::new(input)
+        .filter(|symbol| symbol.symbol == '*')
+        .filter(|symbol| symbol.estimated_num_parts_will_be_greater_then(2))
+        .map(|symbol| {
+            let mut parts = symbol.engine_parts();
+            let first = parts.next().expect("part 1");
+            let second = parts.next().expect("part 2");
+            first * second
+        })
+        .sum()
+}
+*/
+
 #[derive(Debug, Clone, Copy)]
 struct Symbol<'a> {
     symbol: char,
