@@ -58,6 +58,15 @@ impl MyRange {
     fn range(&self) -> Range<i64> {
         self.start..self.end
     }
+
+    fn overlaps(&self, other: &Self) -> Option<(i64, i64)> {
+        let max_start = i64::max(self.start, other.start);
+        let min_end = i64::min(self.end, other.end);
+        match max_start < min_end {
+            true => Some((max_start, min_end)),
+            false => None,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -94,7 +103,7 @@ impl Projections {
     fn project_range(&self, source_range: MyRange) -> SmallVec<[Projection; 32]> {
         let mut projections = SmallVec::<[Projection; 32]>::new();
         for mapping in &self.projections {
-            if let Some((max_start, min_end)) = overlaps(&source_range, &mapping.source_range) {
+            if let Some((max_start, min_end)) = source_range.overlaps(&mapping.source_range) {
                 projections.push(Projection {
                     source_range: MyRange {
                         start: max_start,
@@ -145,15 +154,6 @@ impl Projections {
         }
         //projections.sort_by_key(|p| p.source_range.start);
         projections
-    }
-}
-
-fn overlaps(range_a: &MyRange, range_b: &MyRange) -> Option<(i64, i64)> {
-    let max_start = i64::max(range_a.start, range_b.start);
-    let min_end = i64::min(range_a.end, range_b.end);
-    match max_start < min_end {
-        true => Some((max_start, min_end)),
-        false => None,
     }
 }
 
