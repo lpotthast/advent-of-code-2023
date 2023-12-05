@@ -4,6 +4,7 @@ const INPUT_D1: &str = include_str!("../res/day1.txt");
 const INPUT_D2: &str = include_str!("../res/day2.txt");
 const INPUT_D3: &str = include_str!("../res/day3_a.txt");
 const INPUT_D4: &str = include_str!("../res/day4.txt");
+const INPUT_D5: &str = include_str!("../res/day5.txt");
 
 fn main() {
     init_tracing(tracing::level_filters::LevelFilter::INFO);
@@ -16,6 +17,8 @@ fn main() {
     run(day3::part2, INPUT_D3, 89_471_771);
     run(day4::part1, INPUT_D4, 23_028);
     run(day4::part2, INPUT_D4, 9_236_992);
+    run(day5::part1, INPUT_D5, Some(403695602));
+    run(day5::part2, INPUT_D5, 219_529_182);
 }
 
 #[tracing::instrument(level = "INFO", skip_all, fields(name = std::any::type_name::<F>()))]
