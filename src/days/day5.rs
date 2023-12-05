@@ -5,9 +5,8 @@ use strum_macros::EnumIter;
 
 pub fn part1(input: &str) -> Option<i64> {
     let (seeds, config) = read_input(input, SeedInterpretation::Single);
-    let seeds = seeds.expect_single();
-
     seeds
+        .expect_single()
         .into_iter()
         .map(|seed| {
             let soil = config.seed_to_soil.project(seed);
@@ -17,39 +16,35 @@ pub fn part1(input: &str) -> Option<i64> {
             let temperature = config.light_to_temperature.project(light);
             let humidity = config.temperature_to_humidity.project(temperature);
             let location = config.humidity_to_location.project(humidity);
-            // tracing::info!(seed, soil, fertilizer, water, light, temperature, humidity, location);
             location
         })
         .min()
 }
 
-pub fn part2(input: &str) -> i64 {
+pub fn part2(input: &str) -> Option<i64> {
     let (seeds, config) = read_input(input, SeedInterpretation::Range);
+    seeds
+        .expect_ranges()
+        .into_iter()
+        .fold(None, |prev_lowest_location, seed_range| {
+            let soil_projections = config.seed_to_soil.project_range(seed_range);
+            let fertilizer_projections = config.soil_to_fertilizer.project_projections(soil_projections);
+            let water_projections = config.fertilizer_to_water.project_projections(fertilizer_projections);
+            let light_projections = config.water_to_light.project_projections(water_projections);
+            let temperature_projections = config.light_to_temperature.project_projections(light_projections);
+            let humidity_projections = config
+                .temperature_to_humidity
+                .project_projections(temperature_projections);
+            let location_projections = config.humidity_to_location.project_projections(humidity_projections);
 
-    let mut lowest_location = i64::MAX;
+            let min_location = location_projections
+                .into_iter()
+                .map(|p| p.target_range().start)
+                .min()
+                .expect("at least one location projection");
 
-    for seed_range in seeds.expect_ranges() {
-        let soil_projections = config.seed_to_soil.project_range(seed_range);
-        let fertilizer_projections = config.soil_to_fertilizer.project_projections(soil_projections);
-        let water_projections = config.fertilizer_to_water.project_projections(fertilizer_projections);
-        let light_projections = config.water_to_light.project_projections(water_projections);
-        let temperature_projections = config.light_to_temperature.project_projections(light_projections);
-        let humidity_projections = config
-            .temperature_to_humidity
-            .project_projections(temperature_projections);
-        let location_projections = config.humidity_to_location.project_projections(humidity_projections);
-        let mut locations = location_projections
-            .into_iter()
-            .map(|p| p.target_range())
-            .collect::<Vec<_>>();
-        locations.sort_by_key(|r| r.start);
-
-        if let Some(min) = locations.iter().map(|p| p.start).min() {
-            lowest_location = i64::min(lowest_location, min);
-        }
-    }
-
-    lowest_location
+            Some(i64::min(min_location, prev_lowest_location.unwrap_or(i64::MAX)))
+        })
 }
 
 fn read_input(input: &str, seed_interpretation: SeedInterpretation) -> (Seeds, Config) {
@@ -62,11 +57,11 @@ fn read_input(input: &str, seed_interpretation: SeedInterpretation) -> (Seeds, C
     let mut temperature_to_humidity: Option<Projections> = None;
     let mut humidity_to_location: Option<Projections> = None;
 
-    for part in ConfigParser::new(input, seed_interpretation) {
+    for part in InputParser::new(input, seed_interpretation) {
         match part {
-            ConfigPart::Seeds(single) => seeds = Some(Seeds::Single(single)),
-            ConfigPart::SeedRanges(ranges) => seeds = Some(Seeds::Ranges(ranges)),
-            ConfigPart::Mappings(mappings) => match mappings.ty {
+            InputPart::Seeds(single) => seeds = Some(Seeds::Single(single)),
+            InputPart::SeedRanges(ranges) => seeds = Some(Seeds::Ranges(ranges)),
+            InputPart::Projections(mappings) => match mappings.ty {
                 ProjectionType::SeedToSoil => seed_to_soil = Some(mappings),
                 ProjectionType::SoilToFertilizer => soil_to_fertilizer = Some(mappings),
                 ProjectionType::FertilizerToWater => fertilizer_to_water = Some(mappings),
@@ -182,23 +177,17 @@ impl Projections {
             }
         }
 
-        // tracing::info!(?projections, "BEFORE");
-
         if projections.is_empty() {
             projections.push(Projection {
                 source_range,
                 offset: 0,
             })
         }
-        projections.sort_by_key(|p| p.source_range.start);
-
-        // tracing::info!(?projections, "DONE");
 
         // Add identity projections. Every range not covered with offset 0.
-        let mut proj = projections.iter();
         let mut next = source_range.start;
         let mut filler = Vec::new();
-        while let Some(p) = proj.next() {
+        for p in &projections {
             if p.source_range.start > next {
                 let identity = Projection {
                     source_range: MyRange {
@@ -207,7 +196,6 @@ impl Projections {
                     },
                     offset: 0,
                 };
-                // tracing::info!(?p, ?identity, "push test");
                 filler.push(identity);
             }
             next = p.source_range.end;
@@ -246,14 +234,14 @@ enum Seeds {
 impl Seeds {
     fn expect_single(self) -> Vec<i64> {
         match self {
-            Seeds::Single(single) => single,
-            Seeds::Ranges(_) => panic!("unexpected"),
+            Self::Single(single) => single,
+            Self::Ranges(_) => panic!("unexpected"),
         }
     }
     fn expect_ranges(self) -> Vec<MyRange> {
         match self {
-            Seeds::Single(_) => panic!("unexpected"),
-            Seeds::Ranges(ranges) => ranges,
+            Self::Single(_) => panic!("unexpected"),
+            Self::Ranges(ranges) => ranges,
         }
     }
 }
@@ -270,26 +258,26 @@ struct Config {
 }
 
 #[derive(Debug)]
-enum ConfigPart {
+enum InputPart {
     Seeds(Vec<i64>),
     SeedRanges(Vec<MyRange>),
-    Mappings(Projections),
+    Projections(Projections),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 enum SeedInterpretation {
     Single,
     Range,
 }
 
-struct ConfigParser<'a> {
+struct InputParser<'a> {
     seed_interpretation: SeedInterpretation,
     lines: Lines<'a>,
     line: Option<&'a str>,
     in_block: Option<Projections>,
 }
 
-impl<'a> ConfigParser<'a> {
+impl<'a> InputParser<'a> {
     fn new(input: &'a str, seed_interpretation: SeedInterpretation) -> Self {
         let mut lines = input.lines();
         Self {
@@ -301,85 +289,94 @@ impl<'a> ConfigParser<'a> {
     }
 }
 
-impl<'a> ConfigParser<'a> {
-    fn next_line(&mut self) {
-        self.line = self.lines.next();
+impl<'a> InputParser<'a> {
+    fn read_seeds<I: Iterator<Item = i64>>(it: I, seed_interpretation: SeedInterpretation) -> InputPart {
+        match seed_interpretation {
+            SeedInterpretation::Single => {
+                let seeds = it.collect::<Vec<_>>();
+                InputPart::Seeds(seeds)
+            }
+            SeedInterpretation::Range => {
+                let mut tuples = it.tuples();
+                let ranges = tuples
+                    .by_ref()
+                    .map(|(start, len)| MyRange {
+                        start,
+                        end: start.checked_add(len).unwrap(),
+                    })
+                    .collect_vec();
+                for leftover_seed in tuples.into_buffer() {
+                    tracing::warn!(leftover_seed, "found leftover when reading seeds as range pairs");
+                }
+                InputPart::SeedRanges(ranges)
+            }
+        }
+    }
+
+    fn read_projection(line: &str) -> Projection {
+        let mut it = line.split_ascii_whitespace().map(|it| it.parse::<i64>().unwrap());
+        let target_start = it.next().unwrap();
+        let source_start = it.next().unwrap();
+        let len = it.next().unwrap();
+        assert_eq!(it.next(), None);
+        Projection {
+            source_range: MyRange {
+                start: source_start,
+                end: source_start.checked_add(len).unwrap(),
+            },
+            offset: target_start.checked_sub(source_start).unwrap(),
+        }
+    }
+
+    fn start_block(&mut self, ty: ProjectionType) {
+        self.in_block = Some(Projections {
+            ty,
+            projections: Vec::new(),
+        });
     }
 
     fn finish_block(&mut self) -> Option<Projections> {
         self.in_block.take()
     }
+
+    fn next_line(&mut self) {
+        self.line = self.lines.next();
+    }
 }
 
-impl<'a> Iterator for ConfigParser<'a> {
-    type Item = ConfigPart;
+impl<'a> Iterator for InputParser<'a> {
+    type Item = InputPart;
 
     fn next(&mut self) -> Option<Self::Item> {
         'outer: loop {
             match self.line {
                 Some(line) => {
                     if line.starts_with("seeds:") {
-                        let numbers = line["seeds:".len()..]
+                        let it = line["seeds:".len()..]
                             .trim_start()
                             .split_ascii_whitespace()
                             .map(|it| it.parse::<i64>().unwrap());
-
-                        match self.seed_interpretation {
-                            SeedInterpretation::Single => {
-                                let seeds = numbers.collect::<Vec<_>>();
-                                self.next_line();
-                                return Some(ConfigPart::Seeds(seeds));
-                            }
-                            SeedInterpretation::Range => {
-                                let mut tuples = numbers.tuples();
-                                let ranges = tuples
-                                    .by_ref()
-                                    .map(|(start, len)| MyRange {
-                                        start,
-                                        end: start.checked_add(len).unwrap(),
-                                    })
-                                    .collect_vec();
-                                for leftover_seed in tuples.into_buffer() {
-                                    tracing::warn!(leftover_seed, "found leftover when reading seeds as range pairs");
-                                }
-                                self.next_line();
-                                return Some(ConfigPart::SeedRanges(ranges));
-                            }
-                        }
+                        self.next_line();
+                        return Some(InputParser::read_seeds(it, self.seed_interpretation));
                     }
 
                     if line.is_empty() {
                         self.next_line();
                         if let Some(block) = self.finish_block() {
-                            return Some(ConfigPart::Mappings(block));
+                            return Some(InputPart::Projections(block));
                         }
                         continue 'outer;
                     }
 
                     if let Some(projections) = &mut self.in_block {
-                        // assume line is not empty.
-                        let mut nums = line.split_ascii_whitespace().map(|it| it.parse::<i64>().unwrap());
-                        let target_start = nums.next().unwrap();
-                        let source_start = nums.next().unwrap();
-                        let len = nums.next().unwrap();
-                        assert_eq!(nums.next(), None);
-                        projections.projections.push(Projection {
-                            source_range: MyRange {
-                                start: source_start,
-                                end: source_start.checked_add(len).unwrap(),
-                            },
-                            offset: target_start.checked_sub(source_start).unwrap(),
-                        });
+                        projections.projections.push(InputParser::read_projection(line));
                         self.next_line();
                         continue 'outer;
                     }
 
                     for ty in ProjectionType::iter() {
                         if line.starts_with(ty.block_name()) {
-                            self.in_block = Some(Projections {
-                                ty,
-                                projections: Vec::new(),
-                            });
+                            self.start_block(ty);
                             self.next_line();
                             continue 'outer;
                         }
@@ -390,7 +387,7 @@ impl<'a> Iterator for ConfigParser<'a> {
                 }
                 None => {
                     if let Some(block) = self.finish_block() {
-                        return Some(ConfigPart::Mappings(block));
+                        return Some(InputPart::Projections(block));
                     }
                     return None;
                 }

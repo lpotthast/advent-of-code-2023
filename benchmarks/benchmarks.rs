@@ -62,6 +62,6 @@ fn day5_part1() -> Option<i64> {
 }
 
 #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE)]
-fn day5_part2() -> i64 {
+fn day5_part2() -> Option<i64> {
     day5::part2(black_box(INPUT_D5))
 }
