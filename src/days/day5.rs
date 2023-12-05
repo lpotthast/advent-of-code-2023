@@ -33,13 +33,13 @@ pub fn part2(input: &str) -> Option<i64> {
             let to_fertilizer = config.soil_to_fertilizer.project_projections(to_soil);
             let to_water = config.fertilizer_to_water.project_projections(to_fertilizer);
             let to_light = config.water_to_light.project_projections(to_water);
-            let temperature_projections = config.light_to_temperature.project_projections(to_light);
-            let humidity_projections = config
+            let to_temperature = config.light_to_temperature.project_projections(to_light);
+            let to_humidity = config
                 .temperature_to_humidity
-                .project_projections(temperature_projections);
-            let location_projections = config.humidity_to_location.project_projections(humidity_projections);
+                .project_projections(to_temperature);
+            let to_location = config.humidity_to_location.project_projections(to_humidity);
 
-            let min_location = location_projections
+            let min_location = to_location
                 .into_iter()
                 .map(|p| p.target_range().start)
                 .min()
