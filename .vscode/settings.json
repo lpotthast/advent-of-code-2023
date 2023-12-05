@@ -5,6 +5,7 @@
         "ascii",
         "Ascii",
         "bitmask",
+        "itertools",
         "repr",
         "Ryzen",
         "smallvec"
