@@ -1,18 +1,30 @@
-pub fn part1(input: &str) -> i64 {
-    parse_games(input)
-        .map(|g| solve(g.time as u32, g.distance as i64, 1))
-        .map(|(a, b)| b - a + 1)
+pub fn part1(input: &str) -> u32 {
+    parse_individual_games(input)
+        .map(|g| solve(g.time, g.distance, 1))
+        .map(WinningDuration::num_options_to_win)
         .fold(None, |acc, next| Some(acc.unwrap_or(1) * next))
         .expect("at least one game")
 }
 
-pub fn part2(input: &str) -> i64 {
+pub fn part2(input: &str) -> u32 {
     let g = parse_long_game(input);
-    let (a, b) = solve(g.time as u32, g.distance as i64, 1);
-    b - a + 1
+    solve(g.time, g.distance, 1).num_options_to_win()
 }
 
-fn solve(t_run: u32, dist_record: i64, v: u8) -> (i64, i64) {
+#[derive(Debug, Clone, Copy)]
+struct WinningDuration {
+    min_press: u32,
+    max_press: u32,
+}
+
+impl WinningDuration {
+    const fn num_options_to_win(self) -> u32 {
+        self.max_press - self.min_press + 1
+    }
+}
+
+#[allow(clippy::cast_possible_truncation)]
+fn solve(t_run: u64, dist_record: u64, v: u8) -> WinningDuration {
     // visualization: https://www.geogebra.org/calculator/zebs3ca6
     //
     // dist(t_press) = v * t_press * (t_run - t_press)           || remove parenthesis
@@ -31,22 +43,20 @@ fn solve(t_run: u32, dist_record: i64, v: u8) -> (i64, i64) {
     //   b = v * t_run
     //   c = -dist_record
 
-    let a: i64 = -1;
-    let b: i64 = i64::from(v as u32 * t_run);
-    let c: i64 = -dist_record;
+    let b = u64::from(v) * t_run;
+    let term = b.pow(2) - 4 * dist_record;
+    let sqrt = f64::sqrt(term as f64);
 
-    let b_squared = b.pow(2);
-    let term = b_squared - 4 * a * c;
-    let sq = f64::sqrt(term as f64);
+    let x_1 = (-(b as f64) + sqrt) / -2.0;
+    let x_2 = (-(b as f64) - sqrt) / -2.0;
 
-    let a_doubled = 2 * a;
+    assert!(x_1.is_sign_positive());
+    assert!(x_2.is_sign_positive());
 
-    let x_1 = (-b as f64 + sq) / a_doubled as f64;
-    let x_2 = (-b as f64 - sq) / a_doubled as f64;
-
-    let (x_1, x_2) = (x_1.floor() as i64 + 1, x_2.ceil() as i64 - 1);
-
-    (x_1, x_2)
+    WinningDuration {
+        min_press: x_1.floor() as u32 + 1,
+        max_press: x_2.ceil() as u32 - 1,
+    }
 }
 
 #[derive(Debug)]
@@ -55,7 +65,7 @@ struct Game {
     distance: u64,
 }
 
-fn parse_games(input: &str) -> impl Iterator<Item = Game> + '_ {
+fn parse_individual_games(input: &str) -> impl Iterator<Item = Game> + '_ {
     let mut lines = input.lines();
     let times = lines
         .next()
@@ -81,7 +91,8 @@ fn parse_long_game(input: &str) -> Game {
         .chars()
         .filter(|c| !c.is_whitespace())
         .collect::<String>()
-        .parse::<u64>().expect("number");
+        .parse::<u64>()
+        .expect("number");
     let distance = lines
         .next()
         .expect("second line")
@@ -89,6 +100,7 @@ fn parse_long_game(input: &str) -> Game {
         .chars()
         .filter(|c| !c.is_whitespace())
         .collect::<String>()
-        .parse::<u64>().expect("number");
+        .parse::<u64>()
+        .expect("number");
     Game { time, distance }
 }

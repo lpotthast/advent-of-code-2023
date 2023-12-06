@@ -72,12 +72,12 @@ mod test_input {
     }
 
     #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE)]
-    fn day6_part1() -> i64 {
+    fn day6_part1() -> u32 {
         day6::part1(black_box(INPUT_D6_TEST))
     }
 
     #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE)]
-    fn day6_part2() -> i64 {
+    fn day6_part2() -> u32 {
         day6::part2(black_box(INPUT_D6_TEST))
     }
 }
@@ -145,12 +145,12 @@ mod real_input {
     }
 
     #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE)]
-    fn day6_part1() -> i64 {
+    fn day6_part1() -> u32 {
         day6::part1(black_box(INPUT_D6))
     }
 
     #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE)]
-    fn day6_part2() -> i64 {
+    fn day6_part2() -> u32 {
         day6::part2(black_box(INPUT_D6))
     }
 }

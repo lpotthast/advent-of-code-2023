@@ -16,8 +16,7 @@ pub fn part1(input: &str) -> Option<i64> {
             let light: i64 = config.water_to_light.project(water);
             let temperature = config.light_to_temperature.project(light);
             let humidity = config.temperature_to_humidity.project(temperature);
-            let location = config.humidity_to_location.project(humidity);
-            location
+            config.humidity_to_location.project(humidity)
         })
         .min()
 }
@@ -34,9 +33,7 @@ pub fn part2(input: &str) -> Option<i64> {
             let to_water = config.fertilizer_to_water.project_projections(to_fertilizer);
             let to_light = config.water_to_light.project_projections(to_water);
             let to_temperature = config.light_to_temperature.project_projections(to_light);
-            let to_humidity = config
-                .temperature_to_humidity
-                .project_projections(to_temperature);
+            let to_humidity = config.temperature_to_humidity.project_projections(to_temperature);
             let to_location = config.humidity_to_location.project_projections(to_humidity);
 
             let min_location = to_location
@@ -56,7 +53,7 @@ struct MyRange {
 }
 
 impl MyRange {
-    fn range(&self) -> Range<i64> {
+    const fn range(&self) -> Range<i64> {
         self.start..self.end
     }
 
@@ -77,7 +74,7 @@ struct Projection {
 }
 
 impl Projection {
-    fn target_range(&self) -> MyRange {
+    const fn target_range(&self) -> MyRange {
         MyRange {
             start: self.source_range.start + self.offset,
             end: self.source_range.end + self.offset,
@@ -95,7 +92,7 @@ impl Projections {
     fn project(&self, value: i64) -> i64 {
         for mapping in &self.projections {
             if mapping.source_range.range().contains(&value) {
-                return value.checked_add(mapping.offset).unwrap();
+                return value + mapping.offset;
             }
         }
         value
@@ -119,7 +116,7 @@ impl Projections {
             out.push(Projection {
                 source_range,
                 offset: 0,
-            })
+            });
         }
 
         // Add identity projections. Every range not covered with offset 0.
@@ -177,6 +174,7 @@ impl Seeds {
 }
 
 #[derive(Debug)]
+#[allow(clippy::large_enum_variant)]
 enum InputPart {
     Seeds(Vec<i64>),
     SeedRanges(Vec<MyRange>),
@@ -221,7 +219,7 @@ impl<'a> InputParser<'a> {
                     .by_ref()
                     .map(|(start, len)| MyRange {
                         start,
-                        end: start.checked_add(len).unwrap(),
+                        end: start + len,
                     })
                     .collect_vec();
                 for leftover_seed in tuples.into_buffer() {
@@ -233,17 +231,19 @@ impl<'a> InputParser<'a> {
     }
 
     fn read_projection(line: &str) -> Projection {
-        let mut it = line.split_ascii_whitespace().map(|it| it.parse::<i64>().unwrap());
-        let target_start = it.next().unwrap();
-        let source_start = it.next().unwrap();
-        let len = it.next().unwrap();
+        let mut it = line
+            .split_ascii_whitespace()
+            .map(|it| it.parse::<i64>().expect("number"));
+        let target_start = it.next().expect("target_start");
+        let source_start = it.next().expect("source_start");
+        let len = it.next().expect("len");
         assert_eq!(it.next(), None);
         Projection {
             source_range: MyRange {
                 start: source_start,
-                end: source_start.checked_add(len).unwrap(),
+                end: source_start + len,
             },
-            offset: target_start.checked_sub(source_start).unwrap(),
+            offset: target_start - source_start,
         }
     }
 
@@ -270,11 +270,11 @@ impl<'a> Iterator for InputParser<'a> {
         'outer: loop {
             match self.line {
                 Some(line) => {
-                    if line.starts_with("seeds:") {
-                        let it = line["seeds:".len()..]
+                    if let Some(line) = line.strip_prefix("seeds:") {
+                        let it = line
                             .trim_start()
                             .split_ascii_whitespace()
-                            .map(|it| it.parse::<i64>().unwrap());
+                            .map(|it| it.parse::<i64>().expect("number"));
                         self.next_line();
                         return Some(InputParser::read_seeds(it, self.seed_interpretation));
                     }
@@ -352,15 +352,15 @@ fn read_input(input: &str, seed_interpretation: SeedInterpretation) -> (Seeds, C
         }
     }
     (
-        seeds.unwrap(),
+        seeds.expect("seeds"),
         Config {
-            seed_to_soil: seed_to_soil.unwrap(),
-            soil_to_fertilizer: soil_to_fertilizer.unwrap(),
-            fertilizer_to_water: fertilizer_to_water.unwrap(),
-            water_to_light: water_to_light.unwrap(),
-            light_to_temperature: light_to_temperature.unwrap(),
-            temperature_to_humidity: temperature_to_humidity.unwrap(),
-            humidity_to_location: humidity_to_location.unwrap(),
+            seed_to_soil: seed_to_soil.expect("block"),
+            soil_to_fertilizer: soil_to_fertilizer.expect("block"),
+            fertilizer_to_water: fertilizer_to_water.expect("block"),
+            water_to_light: water_to_light.expect("block"),
+            light_to_temperature: light_to_temperature.expect("block"),
+            temperature_to_humidity: temperature_to_humidity.expect("block"),
+            humidity_to_location: humidity_to_location.expect("block"),
         },
     )
 }
