@@ -7,7 +7,9 @@ pub fn part1(input: &str) -> i64 {
 }
 
 pub fn part2(input: &str) -> i64 {
-    42
+    let g = parse_long_game(input);
+    let (a, b) = solve(g.time as u32, g.distance as i64, 1);
+    b - a + 1
 }
 
 fn solve(t_run: u32, dist_record: i64, v: u8) -> (i64, i64) {
@@ -39,8 +41,8 @@ fn solve(t_run: u32, dist_record: i64, v: u8) -> (i64, i64) {
 
     let a_doubled = 2 * a;
 
-    let x_1 = (-b as f64 + sq) / a_doubled  as f64;
-    let x_2 = (-b as f64 - sq) / a_doubled  as f64;
+    let x_1 = (-b as f64 + sq) / a_doubled as f64;
+    let x_2 = (-b as f64 - sq) / a_doubled as f64;
 
     let (x_1, x_2) = (x_1.floor() as i64 + 1, x_2.ceil() as i64 - 1);
 
@@ -68,4 +70,25 @@ fn parse_games(input: &str) -> impl Iterator<Item = Game> + '_ {
         .split_ascii_whitespace()
         .map(|it| it.parse::<u64>().expect("number"));
     times.zip(distances).map(|(time, distance)| Game { time, distance })
+}
+
+fn parse_long_game(input: &str) -> Game {
+    let mut lines = input.lines();
+    let time = lines
+        .next()
+        .expect("first line")
+        .trim_start_matches("Time:")
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect::<String>()
+        .parse::<u64>().expect("number");
+    let distance = lines
+        .next()
+        .expect("second line")
+        .trim_start_matches("Distance:")
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect::<String>()
+        .parse::<u64>().expect("number");
+    Game { time, distance }
 }
