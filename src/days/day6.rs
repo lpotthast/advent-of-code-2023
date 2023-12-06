@@ -1,6 +1,6 @@
 pub fn part1(input: &str) -> u32 {
     parse_individual_games(input)
-        .map(|g| solve(g.time, g.distance, 1))
+        .map(|g| solve(g.duration, g.distance_record, 1))
         .map(WinningDuration::num_options_to_win)
         .fold(None, |acc, next| Some(acc.unwrap_or(1) * next))
         .expect("at least one game")
@@ -8,7 +8,7 @@ pub fn part1(input: &str) -> u32 {
 
 pub fn part2(input: &str) -> u32 {
     let g = parse_long_game(input);
-    solve(g.time, g.distance, 1).num_options_to_win()
+    solve(g.duration, g.distance_record, 1).num_options_to_win()
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -61,8 +61,8 @@ fn solve(t_run: u64, dist_record: u64, v: u8) -> WinningDuration {
 
 #[derive(Debug)]
 struct Game {
-    time: u64,
-    distance: u64,
+    duration: u64,
+    distance_record: u64,
 }
 
 fn parse_individual_games(input: &str) -> impl Iterator<Item = Game> + '_ {
@@ -79,7 +79,7 @@ fn parse_individual_games(input: &str) -> impl Iterator<Item = Game> + '_ {
         .trim_start_matches("Distance:")
         .split_ascii_whitespace()
         .map(|it| it.parse::<u64>().expect("number"));
-    times.zip(distances).map(|(time, distance)| Game { time, distance })
+    times.zip(distances).map(|(time, distance)| Game { duration: time, distance_record: distance })
 }
 
 fn parse_long_game(input: &str) -> Game {
@@ -102,5 +102,5 @@ fn parse_long_game(input: &str) -> Game {
         .collect::<String>()
         .parse::<u64>()
         .expect("number");
-    Game { time, distance }
+    Game { duration: time, distance_record: distance }
 }
