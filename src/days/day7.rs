@@ -1,10 +1,17 @@
 use std::cmp::Ordering;
 
 pub fn part1(input: &str) -> u64 {
-    let mut hands = parse(input)
+    solve(input, false)
+}
+
+pub fn part2(input: &str) -> u64 {
+    solve(input, true)
+}
+
+pub fn solve(input: &str, interpret_j_as_joker: bool) -> u64 {
+    let mut hands = parse(input, interpret_j_as_joker)
         .map(|(hand, bid)| (hand, hand.strength(), bid))
         .collect::<Vec<_>>();
-
     hands.sort_by(|(hand_a, strength_a, _), (hand_b, strength_b, _)| {
         match strength_a.cmp(strength_b) {
             Ordering::Equal => hand_a
@@ -13,40 +20,27 @@ pub fn part1(input: &str) -> u64 {
                 .zip(hand_b.cards.iter())
                 .find(|(a, b)| **a != **b)
                 .map(|(a, b)| (*a).cmp(&*b))
-                .unwrap_or(Ordering::Equal),  // Technically unreachable, as totally qual hands would have had the same strength to begin with.
+                .unwrap_or(Ordering::Equal), // Technically unreachable, as totally qual hands would have had the same strength to begin with.
             ordering => ordering,
         }
     });
-    // tracing::info!(?hands, len = hands.len());
-
-    let mut sum = 0;
-
-    for num in hands
+    hands
         .iter()
         .enumerate()
-        .map(|(rank, (hand, strength, bid))| {
-            tracing::info!(?hand, ?strength, bid, rank = (rank as u64 + 1));
-            bid * (rank as u64 + 1)
-        }) {
-            sum += num;
-        }
-    sum
+        .map(|(rank, (_hand, _strength, bid))| bid * (rank as u64 + 1))
+        .sum()
 }
 
-pub fn part2(input: &str) -> u64 {
-    0
-}
-
-fn parse(input: &str) -> impl Iterator<Item = (Hand, u64)> + '_ {
+fn parse(input: &str, interpret_j_as_joker: bool) -> impl Iterator<Item = (Hand, u64)> + '_ {
     input
         .lines()
         .map(|line| line.split_once(' ').expect("line with at least one space"))
-        .map(|(card_identifiers, num)| {
+        .map(move |(card_identifiers, num)| {
             (
                 {
                     let mut it = card_identifiers
                         .chars()
-                        .map(|c| Card::try_from(c).expect("valid card identifier"));
+                        .map(|c| Card::try_from((c, interpret_j_as_joker)).expect("valid card identifier"));
                     Hand {
                         cards: [
                             it.next().expect("first card"),
@@ -70,6 +64,7 @@ struct Hand {
 
 impl Hand {
     fn strength(&self) -> HandStrength {
+        let mut jokers = 0;
         let mut counts = [0u8; 13];
 
         for card in self.cards {
@@ -87,9 +82,11 @@ impl Hand {
                 Card::Four => counts[2] += 1,
                 Card::Three => counts[1] += 1,
                 Card::Two => counts[0] += 1,
+                Card::Joker => jokers += 1,
             }
         }
-        let (most, second_most) = find_highest_and_second_highest(counts.into_iter());
+        let (mut most, second_most) = find_highest_and_second_highest(counts.into_iter());
+        most += jokers;
 
         assert!(most >= second_most);
         match (most, second_most) {
@@ -146,17 +143,21 @@ enum Card {
     Four = 4,
     Three = 3,
     Two = 2,
+    Joker = 1,
 }
 
-impl TryFrom<char> for Card {
+impl TryFrom<(char, bool)> for Card {
     type Error = String;
 
-    fn try_from(value: char) -> Result<Self, Self::Error> {
-        match value {
+    fn try_from(value: (char, bool)) -> Result<Self, Self::Error> {
+        match value.0 {
             'A' => Ok(Self::Ace),
             'K' => Ok(Self::King),
             'Q' => Ok(Self::Queen),
-            'J' => Ok(Self::Jack),
+            'J' => match value.1 {
+                true => Ok(Self::Joker),
+                false => Ok(Self::Jack),
+            },
             'T' => Ok(Self::Ten),
             '9' => Ok(Self::Nine),
             '8' => Ok(Self::Eight),

@@ -56,7 +56,7 @@ fn main() {
     run(day7::part2, INPUT_D7_TEST, 5_905);
     run(day7::part2, INPUT_D7_TEST2, 6_839);
     run(day7::part1, INPUT_D7, 253_205_868);
-    run(day7::part2, INPUT_D7, 42);
+    run(day7::part2, INPUT_D7, 253_907_829);
 }
 
 #[tracing::instrument(level = "INFO", skip_all, fields(name = std::any::type_name::<F>()))]
