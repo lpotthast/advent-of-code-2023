@@ -6,7 +6,7 @@ fn main() {
 use lib::days::*;
 
 const SAMPLE_COUNT: u32 = 100;
-const SAMPLE_SIZE: u32 = 100;
+const SAMPLE_SIZE: u32 = 1000;
 
 mod test_input {
     use super::*;
@@ -20,7 +20,7 @@ mod test_input {
     const INPUT_D4_TEST: &str = include_str!("../res/day4_test.txt");
     const INPUT_D5_TEST: &str = include_str!("../res/day5_test.txt");
     const INPUT_D6_TEST: &str = include_str!("../res/day6_test.txt");
-    const INPUT_D7_TEST: &str = include_str!("../res/day6_test.txt");
+    const INPUT_D7_TEST: &str = include_str!("../res/day7_test.txt");
 
     #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE)]
     fn day1_part1() -> u64 {
