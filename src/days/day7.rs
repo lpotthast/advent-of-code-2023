@@ -18,9 +18,9 @@ pub fn solve(input: &str, interpret_j_as_joker: bool) -> u64 {
                 .cards
                 .iter()
                 .zip(hand_b.cards.iter())
-                .find(|(a, b)| **a != **b)
-                .map(|(a, b)| (*a).cmp(&*b))
-                .unwrap_or(Ordering::Equal), // Technically unreachable, as totally qual hands would have had the same strength to begin with.
+                .find(|(a, b)| a != b)
+                .map(|(a, b)| a.cmp(b))
+                .unwrap_or(Ordering::Equal), // Technically unreachable, as totally equal hands would have had the same strength to begin with.
             ordering => ordering,
         }
     });
@@ -119,13 +119,13 @@ fn find_highest_and_second_highest(iter: impl Iterator<Item = u8>) -> (u8, u8) {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum HandStrength {
-    FiveOfAKind = 7,  // (Card),
-    FourOfAKind = 6,  // (Card),
-    FullHouse = 5,    // (Card, Card),
-    ThreeOfAKind = 4, // (Card),
-    TwoPairs = 3,     // (Card, Card),
-    OnePair = 2,      // (Card),
-    HighCard = 1,     // (Card),
+    FiveOfAKind = 7,
+    FourOfAKind = 6,
+    FullHouse = 5,
+    ThreeOfAKind = 4,
+    TwoPairs = 3,
+    OnePair = 2,
+    HighCard = 1,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -180,12 +180,48 @@ mod test {
 
     #[test]
     fn strength() {
-        assert_eq!(Hand { cards: [Card::Ace, Card::Ace, Card::Ace, Card::Ace, Card::Ace] }.strength(), HandStrength::FiveOfAKind);
-        assert_eq!(Hand { cards: [Card::Two, Card::Ace, Card::Ace, Card::Ace, Card::Ace] }.strength(), HandStrength::FourOfAKind);
-        assert_eq!(Hand { cards: [Card::Two, Card::Ace, Card::Two, Card::Ace, Card::Ace] }.strength(), HandStrength::FullHouse);
-        assert_eq!(Hand { cards: [Card::Two, Card::Ace, Card::Two, Card::Two, Card::Ten] }.strength(), HandStrength::ThreeOfAKind);
-        assert_eq!(Hand { cards: [Card::Ten, Card::Ace, Card::Two, Card::Two, Card::Ten] }.strength(), HandStrength::TwoPairs);
-        assert_eq!(Hand { cards: [Card::Two, Card::Two, Card::Two, Card::Four, Card::Four] }.strength(), HandStrength::FullHouse);
+        assert_eq!(
+            Hand {
+                cards: [Card::Ace, Card::Ace, Card::Ace, Card::Ace, Card::Ace]
+            }
+            .strength(),
+            HandStrength::FiveOfAKind
+        );
+        assert_eq!(
+            Hand {
+                cards: [Card::Two, Card::Ace, Card::Ace, Card::Ace, Card::Ace]
+            }
+            .strength(),
+            HandStrength::FourOfAKind
+        );
+        assert_eq!(
+            Hand {
+                cards: [Card::Two, Card::Ace, Card::Two, Card::Ace, Card::Ace]
+            }
+            .strength(),
+            HandStrength::FullHouse
+        );
+        assert_eq!(
+            Hand {
+                cards: [Card::Two, Card::Ace, Card::Two, Card::Two, Card::Ten]
+            }
+            .strength(),
+            HandStrength::ThreeOfAKind
+        );
+        assert_eq!(
+            Hand {
+                cards: [Card::Ten, Card::Ace, Card::Two, Card::Two, Card::Ten]
+            }
+            .strength(),
+            HandStrength::TwoPairs
+        );
+        assert_eq!(
+            Hand {
+                cards: [Card::Two, Card::Two, Card::Two, Card::Four, Card::Four]
+            }
+            .strength(),
+            HandStrength::FullHouse
+        );
     }
 
     #[test]
