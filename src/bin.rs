@@ -8,6 +8,7 @@ const INPUT_D4_TEST: &str = include_str!("../res/day4_test.txt");
 const INPUT_D5_TEST: &str = include_str!("../res/day5_test.txt");
 const INPUT_D6_TEST: &str = include_str!("../res/day6_test.txt");
 const INPUT_D7_TEST: &str = include_str!("../res/day7_test.txt");
+const INPUT_D7_TEST2: &str = include_str!("../res/day7_test2.txt");
 
 const INPUT_D1: &str = include_str!("../res/day1.txt");
 const INPUT_D2: &str = include_str!("../res/day2.txt");
@@ -50,10 +51,12 @@ fn main() {
     run(day6::part1, INPUT_D6, 211_904);
     run(day6::part2, INPUT_D6, 43_364_472);
 
-    run(day7::part1, INPUT_D7_TEST, 0);
-    run(day7::part2, INPUT_D7_TEST, 0);
-    run(day7::part1, INPUT_D7, 0);
-    run(day7::part2, INPUT_D7, 0);
+    run(day7::part1, INPUT_D7_TEST, 6_440);
+    run(day7::part1, INPUT_D7_TEST2, 6_592);
+    run(day7::part2, INPUT_D7_TEST, 5_905);
+    run(day7::part2, INPUT_D7_TEST2, 6_839);
+    run(day7::part1, INPUT_D7, 253_205_868);
+    run(day7::part2, INPUT_D7, 42);
 }
 
 #[tracing::instrument(level = "INFO", skip_all, fields(name = std::any::type_name::<F>()))]
