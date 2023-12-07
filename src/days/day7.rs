@@ -86,9 +86,9 @@ impl Hand {
             }
         }
         let (mut most, second_most) = find_highest_and_second_highest(counts.into_iter());
+        assert!(most >= second_most);
         most += jokers;
 
-        assert!(most >= second_most);
         match (most, second_most) {
             (5, _) => HandStrength::FiveOfAKind,
             (4, _) => HandStrength::FourOfAKind,
@@ -98,7 +98,7 @@ impl Hand {
             (2, 2) => HandStrength::TwoPairs,
             (2, _) => HandStrength::OnePair,
             (1, _) => HandStrength::HighCard,
-            _ => unreachable!("All possible 'most' cases are handled!"),
+            _ => unreachable!("All possible 'most' cases (1, 2, 3, 4 and 5) are handled!"),
         }
     }
 }
