@@ -3,7 +3,6 @@ use std::collections::BTreeMap;
 
 pub fn part1(input: &str) -> u64 {
     let (directions, nodes) = parse(input);
-
     let (g, mapping) = build_graph(nodes);
 
     let zzz = *mapping.get("ZZZ").unwrap();
@@ -26,7 +25,48 @@ pub fn part1(input: &str) -> u64 {
 }
 
 pub fn part2(input: &str) -> u64 {
-    0
+    let (directions, nodes) = parse(input);
+    let (g, mapping) = build_graph(nodes);
+
+    let zzzs = mapping
+        .keys()
+        .rev()
+        .filter(|k| k.ends_with('Z'))
+        .map(|k| *mapping.get(*k).expect("present"))
+        .collect::<Vec<_>>();
+
+    tracing::info!(?zzzs);
+
+    let mut current_nodes = mapping
+        .keys()
+        .rev()
+        .filter(|k| k.ends_with('A'))
+        .map(|k| *mapping.get(*k).expect("present"))
+        .collect::<Vec<_>>();
+
+    tracing::info!(?current_nodes);
+
+    let mut steps = 0;
+    for d in directions.collect::<Vec<_>>().iter().cycle() {
+        for current in &mut current_nodes {
+            let target = g
+                .edges_directed(*current, Outgoing)
+                .find(|e| e.weight() == d)
+                .unwrap()
+                .target();
+            *current = target;
+        }
+        steps += 1;
+        let ending_on_z = current_nodes.iter().filter(|c| zzzs.contains(c)).count();
+        // tracing::info!(?current_nodes, ending_on_z);
+        if ending_on_z == current_nodes.len() {
+            break;
+        }
+        if ending_on_z > 3 {
+            tracing::info!(?current_nodes, ending_on_z, "matching");
+        }
+    }
+    steps
 }
 
 fn build_graph<'a>(
