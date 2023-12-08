@@ -110,16 +110,16 @@ fn build_graph<'a>(
         let i_source = get_or_insert(source, &mut mapping, &mut g);
         let i_left = get_or_insert(left, &mut mapping, &mut g);
         let i_right = get_or_insert(right, &mut mapping, &mut g);
-        g.add_edge(i_source, i_left, Direction::L);
-        g.add_edge(i_source, i_right, Direction::R);
+        g.add_edge(i_source, i_left, Direction::Left);
+        g.add_edge(i_source, i_right, Direction::Right);
     }
     (g, mapping)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Direction {
-    L,
-    R,
+    Left,
+    Right,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -137,8 +137,8 @@ fn parse(
 ) {
     let mut lines = input.lines();
     let dirs = lines.next().expect("direction information").chars().map(|c| match c {
-        'L' => Direction::L,
-        'R' => Direction::R,
+        'L' => Direction::Left,
+        'R' => Direction::Right,
         _ => panic!("Unexpected direction character"),
     });
 
