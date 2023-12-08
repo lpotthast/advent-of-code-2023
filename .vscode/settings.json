@@ -6,6 +6,7 @@
         "Ascii",
         "bitmask",
         "itertools",
+        "petgraph",
         "repr",
         "Ryzen",
         "smallvec"
