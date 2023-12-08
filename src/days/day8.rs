@@ -25,7 +25,6 @@ pub fn part2(input: &str) -> u64 {
 
     let starting_nodes = mapping
         .keys()
-        .rev()
         .filter(|k| k.ends_with('A'))
         .map(|k| *mapping.get(*k).expect("present"));
 
