@@ -7,8 +7,8 @@ pub fn part1(input: &str) -> u64 {
     let (directions, nodes) = parse(input);
     let (g, mapping) = build_graph(nodes);
 
-    let start = *mapping.get("AAA").unwrap();
-    let target = *mapping.get("ZZZ").unwrap();
+    let start = *mapping.get("AAA").expect("start");
+    let target = *mapping.get("ZZZ").expect("target");
     count_steps_to_reach_first_target_node(&g, start, &[target], &directions.collect::<Vec<_>>())
 }
 
@@ -20,7 +20,6 @@ pub fn part2(input: &str) -> u64 {
 
     let target_nodes = mapping
         .keys()
-        .rev()
         .filter(|k| k.ends_with('Z'))
         .map(|k| *mapping.get(*k).expect("present"))
         .collect::<Vec<_>>();
@@ -32,7 +31,7 @@ pub fn part2(input: &str) -> u64 {
 
     starting_nodes
         .map(|start| count_steps_to_reach_first_target_node(&g, start, &target_nodes, &directions))
-        .fold(1, |acc, next| lcm(acc, next))
+        .fold(1, lcm)
 }
 
 fn count_steps_to_reach_first_target_node(
@@ -47,7 +46,7 @@ fn count_steps_to_reach_first_target_node(
         let target = g
             .edges_directed(current, Outgoing)
             .find(|e| e.weight() == d)
-            .unwrap()
+            .expect("edge")
             .target();
         current = target;
         steps += 1;

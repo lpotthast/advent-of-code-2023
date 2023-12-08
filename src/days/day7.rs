@@ -63,7 +63,7 @@ struct Hand {
 }
 
 impl Hand {
-    fn strength(&self) -> HandStrength {
+    fn strength(self) -> HandStrength {
         let mut jokers = 0;
         let mut counts = [0u8; 13];
 
@@ -92,8 +92,7 @@ impl Hand {
         match (most, second_most) {
             (5, _) => HandStrength::FiveOfAKind,
             (4, _) => HandStrength::FourOfAKind,
-            (3, 2) => HandStrength::FullHouse,
-            (2, 3) => HandStrength::FullHouse,
+            (3, 2) | (2, 3) => HandStrength::FullHouse,
             (3, _) => HandStrength::ThreeOfAKind,
             (2, 2) => HandStrength::TwoPairs,
             (2, _) => HandStrength::OnePair,
