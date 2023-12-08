@@ -48,10 +48,10 @@ fn build_graph<'a>(
     }
     let mut g: StableGraph<(), Direction> = StableGraph::new();
     let mut mapping: BTreeMap<&str, NodeIndex> = BTreeMap::new();
-    for node in nodes {
-        let i_source = get_or_insert(node.node, &mut mapping, &mut g);
-        let i_left = get_or_insert(node.left, &mut mapping, &mut g);
-        let i_right = get_or_insert(node.right, &mut mapping, &mut g);
+    for NodeWithEdges { source, left, right } in nodes {
+        let i_source = get_or_insert(source, &mut mapping, &mut g);
+        let i_left = get_or_insert(left, &mut mapping, &mut g);
+        let i_right = get_or_insert(right, &mut mapping, &mut g);
         g.add_edge(i_source, i_left, Direction::L);
         g.add_edge(i_source, i_right, Direction::R);
     }
@@ -66,7 +66,7 @@ enum Direction {
 
 #[derive(Debug, Clone, Copy)]
 struct NodeWithEdges<'a> {
-    node: &'a str,
+    source: &'a str,
     left: &'a str,
     right: &'a str,
 }
@@ -85,7 +85,7 @@ fn parse(
     });
 
     let nodes = lines.filter(|l| !l.is_empty()).map(|line| {
-        let (node, rest) = line
+        let (source, rest) = line
             .split_once('=')
             .map(|(a, b)| (a.trim_end(), b.trim_start()))
             .expect("=");
@@ -95,7 +95,7 @@ fn parse(
             .split_once(',')
             .map(|(a, b)| (a.trim(), b.trim()))
             .expect(",");
-        NodeWithEdges { node, left, right }
+        NodeWithEdges { source, left, right }
     });
 
     (dirs, nodes)
