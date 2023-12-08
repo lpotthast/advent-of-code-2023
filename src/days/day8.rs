@@ -1,58 +1,18 @@
-use petgraph::{stable_graph::StableGraph, visit::EdgeRef};
+use petgraph::prelude::*;
 use std::collections::BTreeMap;
 
 pub fn part1(input: &str) -> u64 {
     let (directions, nodes) = parse(input);
 
-    let directions: Vec<Direction> = directions.collect();
-    let n = nodes.collect::<Vec<_>>();
-
-    //tracing::info!(?directions, ?n);
-
-    // let mut g: StableGraph<&str, &str> = StableGraph::from_edges(n.into_iter().map(|n| (n.left, n.right)));
-    let mut g: StableGraph<(), Direction> = StableGraph::new();
-
-    let mut mapping = BTreeMap::new();
-
-    for node in n {
-        let i_source = match mapping.get(node.node) {
-            Some(i) => *i,
-            None => {
-                let i = g.add_node(());
-                mapping.insert(node.node, i);
-                i
-            }
-        };
-        let i_left = match mapping.get(node.left) {
-            Some(i) => *i,
-            None => {
-                let i = g.add_node(());
-                mapping.insert(node.left, i);
-                i
-            }
-        };
-        let i_right = match mapping.get(node.right) {
-            Some(i) => *i,
-            None => {
-                let i = g.add_node(());
-                mapping.insert(node.right, i);
-                i
-            }
-        };
-
-        g.add_edge(i_source, i_left, Direction::L);
-        g.add_edge(i_source, i_right, Direction::R);
-    }
-
-    //tracing::info!(?g);
+    let (g, mapping) = build_graph(nodes);
 
     let zzz = *mapping.get("ZZZ").unwrap();
     let mut current = *mapping.get("AAA").unwrap();
 
     let mut steps = 0;
-    for d in directions.iter().cycle() {
+    for d in directions.collect::<Vec<_>>().iter().cycle() {
         let target = g
-            .edges_directed(current, petgraph::Direction::Outgoing)
+            .edges_directed(current, Outgoing)
             .find(|e| e.weight() == d)
             .unwrap()
             .target();
@@ -62,14 +22,40 @@ pub fn part1(input: &str) -> u64 {
             break;
         }
     }
-
-    //tracing::info!(?current, steps, "Found end.");
-
     steps
 }
 
 pub fn part2(input: &str) -> u64 {
     0
+}
+
+fn build_graph<'a>(
+    nodes: impl Iterator<Item = NodeWithEdges<'a>> + 'a,
+) -> (StableGraph<(), Direction>, BTreeMap<&'a str, NodeIndex>) {
+    fn get_or_insert<'a>(
+        node: &'a str,
+        mapping: &mut BTreeMap<&'a str, NodeIndex>,
+        g: &mut StableGraph<(), Direction>,
+    ) -> NodeIndex {
+        match mapping.get(node) {
+            Some(i) => *i,
+            None => {
+                let i = g.add_node(());
+                mapping.insert(node, i);
+                i
+            }
+        }
+    }
+    let mut g: StableGraph<(), Direction> = StableGraph::new();
+    let mut mapping: BTreeMap<&str, NodeIndex> = BTreeMap::new();
+    for node in nodes {
+        let i_source = get_or_insert(node.node, &mut mapping, &mut g);
+        let i_left = get_or_insert(node.left, &mut mapping, &mut g);
+        let i_right = get_or_insert(node.right, &mut mapping, &mut g);
+        g.add_edge(i_source, i_left, Direction::L);
+        g.add_edge(i_source, i_right, Direction::R);
+    }
+    (g, mapping)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
