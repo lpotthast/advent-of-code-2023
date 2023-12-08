@@ -28,42 +28,79 @@ pub fn part2(input: &str) -> u64 {
     let (directions, nodes) = parse(input);
     let (g, mapping) = build_graph(nodes);
 
-    let zzzs = mapping
+    let target_nodes = mapping
         .keys()
         .rev()
         .filter(|k| k.ends_with('Z'))
         .map(|k| *mapping.get(*k).expect("present"))
         .collect::<Vec<_>>();
 
-    tracing::info!(?zzzs);
-
-    let mut current_nodes = mapping
+    let starting_nodes = mapping
         .keys()
         .rev()
         .filter(|k| k.ends_with('A'))
         .map(|k| *mapping.get(*k).expect("present"))
         .collect::<Vec<_>>();
 
-    tracing::info!(?current_nodes);
+    let directions = directions.collect::<Vec<_>>();
+    let min_steps = starting_nodes
+        .iter()
+        .map(|start| count_steps_to_reach_first_target_node(&g, *start, &target_nodes, &directions))
+        .collect::<Vec<_>>();
+    //tracing::info!(?min_steps);
 
+    min_steps.into_iter().fold(1, |acc, next| lcm(acc, next))
+}
+
+/// Least common multiple of two positive integers. Using `gcd`.
+fn lcm(a: u64, b: u64) -> u64 {
+    a * (b / gcd(a, b))
+}
+
+/// Greatest common divisor of two positive integers. Euclidean algorithm.
+fn gcd(a: u64, b: u64) -> u64 {
+    match (a, b) {
+        (a, 0) => a,
+        (a, b) => gcd(b, a % b),
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::gcd;
+    use super::lcm;
+
+    #[test]
+    fn test_lcm() {
+        assert_eq!(lcm(21, 6), 42);
+        assert_eq!(lcm(6, 21), 42);
+    }
+
+    #[test]
+    fn test_gcd() {
+        assert_eq!(gcd(48, 18), 6);
+        assert_eq!(gcd(18, 48), 6);
+    }
+}
+
+fn count_steps_to_reach_first_target_node(
+    g: &StableGraph<(), Direction>,
+    start: NodeIndex,
+    targets: &Vec<NodeIndex>,
+    directions: &Vec<Direction>,
+) -> u64 {
+    let mut current = start;
     let mut steps = 0;
-    for d in directions.collect::<Vec<_>>().iter().cycle() {
-        for current in &mut current_nodes {
-            let target = g
-                .edges_directed(*current, Outgoing)
-                .find(|e| e.weight() == d)
-                .unwrap()
-                .target();
-            *current = target;
-        }
+    for d in directions.iter().cycle() {
+        let target = g
+            .edges_directed(current, Outgoing)
+            .find(|e| e.weight() == d)
+            .unwrap()
+            .target();
+        current = target;
         steps += 1;
-        let ending_on_z = current_nodes.iter().filter(|c| zzzs.contains(c)).count();
-        // tracing::info!(?current_nodes, ending_on_z);
-        if ending_on_z == current_nodes.len() {
+        if targets.contains(&current) {
             break;
-        }
-        if ending_on_z > 3 {
-            tracing::info!(?current_nodes, ending_on_z, "matching");
         }
     }
     steps
