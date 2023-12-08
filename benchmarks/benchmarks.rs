@@ -6,7 +6,7 @@ fn main() {
 use lib::days::*;
 
 const SAMPLE_COUNT: u32 = 100;
-const SAMPLE_SIZE: u32 = 100;
+const SAMPLE_SIZE: u32 = 1000;
 
 mod test_input {
     use super::*;
