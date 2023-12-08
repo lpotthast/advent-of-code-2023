@@ -5,28 +5,16 @@ pub fn part1(input: &str) -> u64 {
     let (directions, nodes) = parse(input);
     let (g, mapping) = build_graph(nodes);
 
-    let zzz = *mapping.get("ZZZ").unwrap();
-    let mut current = *mapping.get("AAA").unwrap();
-
-    let mut steps = 0;
-    for d in directions.collect::<Vec<_>>().iter().cycle() {
-        let target = g
-            .edges_directed(current, Outgoing)
-            .find(|e| e.weight() == d)
-            .unwrap()
-            .target();
-        current = target;
-        steps += 1;
-        if current == zzz {
-            break;
-        }
-    }
-    steps
+    let start = *mapping.get("AAA").unwrap();
+    let target = *mapping.get("ZZZ").unwrap();
+    count_steps_to_reach_first_target_node(&g, start, &[target], &directions.collect::<Vec<_>>())
 }
 
 pub fn part2(input: &str) -> u64 {
     let (directions, nodes) = parse(input);
     let (g, mapping) = build_graph(nodes);
+
+    let directions = directions.collect::<Vec<_>>();
 
     let target_nodes = mapping
         .keys()
@@ -39,17 +27,11 @@ pub fn part2(input: &str) -> u64 {
         .keys()
         .rev()
         .filter(|k| k.ends_with('A'))
-        .map(|k| *mapping.get(*k).expect("present"))
-        .collect::<Vec<_>>();
+        .map(|k| *mapping.get(*k).expect("present"));
 
-    let directions = directions.collect::<Vec<_>>();
-    let min_steps = starting_nodes
-        .iter()
-        .map(|start| count_steps_to_reach_first_target_node(&g, *start, &target_nodes, &directions))
-        .collect::<Vec<_>>();
-    //tracing::info!(?min_steps);
-
-    min_steps.into_iter().fold(1, |acc, next| lcm(acc, next))
+    starting_nodes
+        .map(|start| count_steps_to_reach_first_target_node(&g, start, &target_nodes, &directions))
+        .fold(1, |acc, next| lcm(acc, next))
 }
 
 /// Least common multiple of two positive integers. Using `gcd`.
@@ -86,8 +68,8 @@ mod test {
 fn count_steps_to_reach_first_target_node(
     g: &StableGraph<(), Direction>,
     start: NodeIndex,
-    targets: &Vec<NodeIndex>,
-    directions: &Vec<Direction>,
+    targets: &[NodeIndex],
+    directions: &[Direction],
 ) -> u64 {
     let mut current = start;
     let mut steps = 0;
