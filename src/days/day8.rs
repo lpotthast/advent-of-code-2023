@@ -1,6 +1,8 @@
 use petgraph::prelude::*;
 use std::collections::BTreeMap;
 
+type Graph = StableGraph<(), Direction>;
+
 pub fn part1(input: &str) -> u64 {
     let (directions, nodes) = parse(input);
     let (g, mapping) = build_graph(nodes);
@@ -33,39 +35,8 @@ pub fn part2(input: &str) -> u64 {
         .fold(1, |acc, next| lcm(acc, next))
 }
 
-/// Least common multiple of two positive integers. Using `gcd`.
-fn lcm(a: u64, b: u64) -> u64 {
-    a * (b / gcd(a, b))
-}
-
-/// Greatest common divisor of two positive integers. Euclidean algorithm.
-fn gcd(a: u64, b: u64) -> u64 {
-    match (a, b) {
-        (a, 0) => a,
-        (a, b) => gcd(b, a % b),
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::gcd;
-    use super::lcm;
-
-    #[test]
-    fn test_lcm() {
-        assert_eq!(lcm(21, 6), 42);
-        assert_eq!(lcm(6, 21), 42);
-    }
-
-    #[test]
-    fn test_gcd() {
-        assert_eq!(gcd(48, 18), 6);
-        assert_eq!(gcd(18, 48), 6);
-    }
-}
-
 fn count_steps_to_reach_first_target_node(
-    g: &StableGraph<(), Direction>,
+    g: &Graph,
     start: NodeIndex,
     targets: &[NodeIndex],
     directions: &[Direction],
@@ -87,14 +58,8 @@ fn count_steps_to_reach_first_target_node(
     steps
 }
 
-fn build_graph<'a>(
-    nodes: impl Iterator<Item = NodeWithEdges<'a>> + 'a,
-) -> (StableGraph<(), Direction>, BTreeMap<&'a str, NodeIndex>) {
-    fn get_or_insert<'a>(
-        node: &'a str,
-        mapping: &mut BTreeMap<&'a str, NodeIndex>,
-        g: &mut StableGraph<(), Direction>,
-    ) -> NodeIndex {
+fn build_graph<'a>(nodes: impl Iterator<Item = NodeWithEdges<'a>> + 'a) -> (Graph, BTreeMap<&'a str, NodeIndex>) {
+    fn get_or_insert<'a>(node: &'a str, mapping: &mut BTreeMap<&'a str, NodeIndex>, g: &mut Graph) -> NodeIndex {
         match mapping.get(node) {
             Some(i) => *i,
             None => {
@@ -104,7 +69,7 @@ fn build_graph<'a>(
             }
         }
     }
-    let mut g: StableGraph<(), Direction> = StableGraph::new();
+    let mut g: Graph = StableGraph::new();
     let mut mapping: BTreeMap<&str, NodeIndex> = BTreeMap::new();
     for NodeWithEdges { source, left, right } in nodes {
         let i_source = get_or_insert(source, &mut mapping, &mut g);
@@ -157,4 +122,35 @@ fn parse(
     });
 
     (dirs, nodes)
+}
+
+/// Least common multiple of two positive integers. Using `gcd`.
+fn lcm(a: u64, b: u64) -> u64 {
+    a * (b / gcd(a, b))
+}
+
+/// Greatest common divisor of two positive integers. Euclidean algorithm.
+fn gcd(a: u64, b: u64) -> u64 {
+    match (a, b) {
+        (a, 0) => a,
+        (a, b) => gcd(b, a % b),
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::gcd;
+    use super::lcm;
+
+    #[test]
+    fn test_lcm() {
+        assert_eq!(lcm(21, 6), 42);
+        assert_eq!(lcm(6, 21), 42);
+    }
+
+    #[test]
+    fn test_gcd() {
+        assert_eq!(gcd(48, 18), 6);
+        assert_eq!(gcd(18, 48), 6);
+    }
 }
