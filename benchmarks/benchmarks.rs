@@ -201,12 +201,12 @@ mod real_input {
         day7::part2(black_box(INPUT_D7))
     }
 
-    #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE)]
+    #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE / 2)]
     fn day8_part1() -> u64 {
         day8::part1(black_box(INPUT_D8))
     }
 
-    #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE)]
+    #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE / 2)]
     fn day8_part2() -> u64 {
         day8::part2(black_box(INPUT_D8))
     }

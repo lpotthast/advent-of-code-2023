@@ -22,19 +22,19 @@ pub fn part2(input: &str) -> i64 {
         .sum()
 }
 
-fn estimate_next(hist: &mut [i64]) -> i64 {
-    let mut next_len = hist.len() - 1;
-    let mut slice = &mut hist[0..=next_len];
+fn estimate_next(history: &mut [i64]) -> i64 {
+    let mut upper_bound = history.len();
+    let mut slice = &mut history[0..upper_bound];
 
     while slice.iter().any(|it| *it != 0) {
         for (i, j) in (0..slice.len()).tuple_windows::<(_, _)>() {
             slice[i] = slice[j] - slice[i];
         }
-        next_len = slice.len() - 2;
-        slice = &mut hist[0..=next_len];
+        upper_bound = slice.len() - 1;
+        slice = &mut history[0..upper_bound];
     }
 
-    hist[next_len - 1..hist.len()].iter().sum::<i64>()
+    history[upper_bound - 1..history.len()].iter().sum::<i64>()
 }
 
 fn read_history(input: &str) -> impl Iterator<Item = i64> + '_ {
