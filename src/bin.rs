@@ -13,6 +13,7 @@ const INPUT_D8_PART1_TEST: &str = include_str!("../res/day8_part1_test.txt");
 const INPUT_D8_PART1_TEST2: &str = include_str!("../res/day8_part1_test2.txt");
 const INPUT_D8_PART2_TEST: &str = include_str!("../res/day8_part2_test.txt");
 const INPUT_D9_TEST: &str = include_str!("../res/day9_test.txt");
+const INPUT_D10_TEST: &str = include_str!("../res/day10_test.txt");
 
 const INPUT_D1: &str = include_str!("../res/day1.txt");
 const INPUT_D2: &str = include_str!("../res/day2.txt");
@@ -23,6 +24,7 @@ const INPUT_D6: &str = include_str!("../res/day6.txt");
 const INPUT_D7: &str = include_str!("../res/day7.txt");
 const INPUT_D8: &str = include_str!("../res/day8.txt");
 const INPUT_D9: &str = include_str!("../res/day9.txt");
+const INPUT_D10: &str = include_str!("../res/day10.txt");
 
 fn main() {
     init_tracing(tracing::level_filters::LevelFilter::INFO);
@@ -74,6 +76,11 @@ fn main() {
     run(day9::part1, INPUT_D9, 1_877_825_184);
     run(day9::part2, INPUT_D9_TEST, 2);
     run(day9::part2, INPUT_D9, 1_108);
+
+    run(day10::part1, INPUT_D10_TEST, 0);
+    run(day10::part1, INPUT_D10, 0);
+    run(day10::part2, INPUT_D10_TEST, 0);
+    run(day10::part2, INPUT_D10, 0);
 }
 
 #[tracing::instrument(level = "INFO", skip_all, fields(name = std::any::type_name::<F>()))]
