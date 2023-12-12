@@ -70,7 +70,97 @@ pub fn part1(input: &str) -> u64 {
 }
 
 pub fn part2(input: &str) -> u64 {
-    42
+    let mut tile_map = parse_input(input);
+    let (mut g, mut mapping, (start_row, start_col)) = build_graph(&tile_map);
+
+    let mut rev_mapping = BTreeMap::new();
+    for (k, v) in &mapping {
+        rev_mapping.insert(*v, *k);
+    }
+
+    tracing::info!(start_row, start_col);
+    //tracing::info!(?g);
+    //tracing::info!(?tile_map);
+
+    // For each possible pipe which would connect both ends:
+    // Insert pipe and
+    // Check resulting path length is cyclic and store length.
+
+    let candidates = {
+        let start = tile_map.row(start_row).col(start_col);
+        tracing::info!(?start);
+        Pipe::iter()
+            .filter(|pipe| match pipe {
+                Pipe::Vertical => {
+                    start.above().is_pipe_and(Pipe::facing_south) && start.below().is_pipe_and(Pipe::facing_north)
+                }
+                Pipe::Horizontal => {
+                    start.left().is_pipe_and(Pipe::facing_east) && start.right().is_pipe_and(Pipe::facing_west)
+                }
+                Pipe::NorthEast => {
+                    start.above().is_pipe_and(Pipe::facing_south) && start.right().is_pipe_and(Pipe::facing_west)
+                }
+                Pipe::NorthWest => {
+                    start.above().is_pipe_and(Pipe::facing_south) && start.left().is_pipe_and(Pipe::facing_east)
+                }
+                Pipe::SouthWest => {
+                    start.below().is_pipe_and(Pipe::facing_north) && start.left().is_pipe_and(Pipe::facing_east)
+                }
+                Pipe::SouthEast => {
+                    start.below().is_pipe_and(Pipe::facing_north) && start.right().is_pipe_and(Pipe::facing_west)
+                }
+            })
+            .collect::<Vec<_>>()
+    };
+
+    tracing::info!(?candidates);
+
+    for candidate in candidates {
+        tile_map.update(start_row, start_col, Tile::Pipe(candidate));
+        let start = tile_map.row(start_row).col(start_col);
+        insert_node(&start, &mut mapping, &mut g, true);
+    }
+
+    //tracing::info!(?g);
+    ////tracing::info!(?tile_map);
+
+    let start_node = mapping[&[start_row, start_col]];
+
+    let path = walk(&g, start_node);
+    tracing::info!(?path);
+
+    let path_tiles = path.iter().map(|idx| rev_mapping.get(idx).unwrap()).collect::<Vec<_>>();
+
+    for r in 1..tile_map.inner.len() - 1 {
+        for c in 1..tile_map.inner[0].len() - 1 {
+            if !path_tiles.contains(&&[r, c]) {
+                tile_map.update(r, c, Tile::Ground);
+            }
+        }
+    }
+
+    tracing::info!(?tile_map);
+
+    fn is_inner_tile() -> bool {
+        false
+    }
+
+    for r in 1..tile_map.inner.len() - 1 {
+        for c in 1..tile_map.inner[0].len() - 1 {
+            let t = tile_map.row(r).col(c);
+            match t.itself() {
+                _ => is_inner_tile(),
+            }
+        }
+    }
+
+    //let a = petgraph::algo::astar(&g, start_node, |n| n == start_node, |_e| 0, |_e| 0);
+    //tracing::info!(?a);
+    //
+    //for p in petgraph::algo::simple_paths::all_simple_paths::<Vec<_>, _>(&g, start_node, start_node, 1, None) {
+    //    tracing::info!(?p);
+    //}
+    (path.len() / 2) as u64
 }
 
 fn walk(g: &Graph, start: NodeIndex) -> Vec<NodeIndex> {
