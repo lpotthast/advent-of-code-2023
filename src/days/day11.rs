@@ -132,11 +132,10 @@ impl<'a> Iterator for GalaxyCombinations<'a> {
             if self.j == self.galaxies.len() {
                 self.i += 1;
                 self.j = 0;
+                if self.i == self.galaxies.len() {
+                    return None;
+                }
             }
-            if self.i == self.galaxies.len() {
-                return None;
-            }
-
             let i = self.i;
             let j = self.j;
             self.j += 1;
