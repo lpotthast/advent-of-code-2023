@@ -24,7 +24,8 @@ mod test_input {
     const INPUT_D8_PART1_TEST: &str = include_str!("../res/day8_part1_test.txt");
     const INPUT_D8_PART2_TEST: &str = include_str!("../res/day8_part2_test.txt");
     const INPUT_D9_TEST: &str = include_str!("../res/day9_test.txt");
-    const INPUT_D10_TEST: &str = include_str!("../res/day10_test.txt");
+    const INPUT_D10_PART1_TEST: &str = include_str!("../res/day10_part1_test2.txt");
+    const INPUT_D10_PART2_TEST: &str = include_str!("../res/day10_part2_test3.txt");
 
     #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE)]
     fn day1_part1() -> u64 {
@@ -96,12 +97,12 @@ mod test_input {
         day7::part2(black_box(INPUT_D7_TEST))
     }
 
-    #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE)]
+    #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE / 2)]
     fn day8_part1() -> u64 {
         day8::part1(black_box(INPUT_D8_PART1_TEST))
     }
 
-    #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE)]
+    #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE / 2)]
     fn day8_part2() -> u64 {
         day8::part2(black_box(INPUT_D8_PART2_TEST))
     }
@@ -116,14 +117,14 @@ mod test_input {
         day9::part2(black_box(INPUT_D9_TEST))
     }
 
-    #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE)]
+    #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE / 10)]
     fn day10_part1() -> u64 {
-        day10::part1(black_box(INPUT_D10_TEST))
+        day10::part1(black_box(INPUT_D10_PART1_TEST))
     }
 
-    #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE)]
+    #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE / 10)]
     fn day10_part2() -> u64 {
-        day10::part2(black_box(INPUT_D10_TEST))
+        day10::part2(black_box(INPUT_D10_PART2_TEST))
     }
 }
 
@@ -233,12 +234,12 @@ mod real_input {
         day9::part2(black_box(INPUT_D9))
     }
 
-    #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE)]
+    #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE / 10)]
     fn day10_part1() -> u64 {
         day10::part1(black_box(INPUT_D10))
     }
 
-    #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE)]
+    #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE / 10)]
     fn day10_part2() -> u64 {
         day10::part2(black_box(INPUT_D10))
     }
