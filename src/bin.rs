@@ -94,8 +94,11 @@ fn main() {
 
 #[tracing::instrument(level = "INFO", skip_all, fields(name = std::any::type_name::<F>()))]
 fn run<R: std::fmt::Debug + PartialEq, F: Fn(&str) -> R>(fun: F, input: &str, expect: R) {
+    let start = std::time::Instant::now();
     let result = fun(input);
-    tracing::info!(?result);
+    let end = std::time::Instant::now();
+    let took = (end - start).as_micros();
+    tracing::info!(?result, took = format!("{took} μs"));
     assert_eq!(result, expect);
 }
 
