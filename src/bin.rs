@@ -13,8 +13,11 @@ const INPUT_D8_PART1_TEST: &str = include_str!("../res/day8_part1_test.txt");
 const INPUT_D8_PART1_TEST2: &str = include_str!("../res/day8_part1_test2.txt");
 const INPUT_D8_PART2_TEST: &str = include_str!("../res/day8_part2_test.txt");
 const INPUT_D9_TEST: &str = include_str!("../res/day9_test.txt");
-const INPUT_D10_TEST: &str = include_str!("../res/day10_test.txt");
+const INPUT_D10_PART1_TEST1: &str = include_str!("../res/day10_part1_test1.txt");
 const INPUT_D10_PART1_TEST2: &str = include_str!("../res/day10_part1_test2.txt");
+const INPUT_D10_PART2_TEST1: &str = include_str!("../res/day10_part2_test1.txt");
+const INPUT_D10_PART2_TEST2: &str = include_str!("../res/day10_part2_test2.txt");
+const INPUT_D10_PART2_TEST3: &str = include_str!("../res/day10_part2_test3.txt");
 
 const INPUT_D1: &str = include_str!("../res/day1.txt");
 const INPUT_D2: &str = include_str!("../res/day2.txt");
@@ -78,11 +81,15 @@ fn main() {
     run(day9::part2, INPUT_D9_TEST, 2);
     run(day9::part2, INPUT_D9, 1_108);
 
-    run(day10::part1, INPUT_D10_TEST, 4);
+    run(day10::part1, INPUT_D10_PART1_TEST1, 4);
     run(day10::part1, INPUT_D10_PART1_TEST2, 8);
     run(day10::part1, INPUT_D10, 6_875);
-    run(day10::part2, INPUT_D10_TEST, 0);
-    run(day10::part2, INPUT_D10, 0);
+    run(day10::part2, INPUT_D10_PART1_TEST1, 1);
+    run(day10::part2, INPUT_D10_PART1_TEST2, 1);
+    run(day10::part2, INPUT_D10_PART2_TEST1, 4);
+    run(day10::part2, INPUT_D10_PART2_TEST2, 8);
+    run(day10::part2, INPUT_D10_PART2_TEST3, 10);
+    run(day10::part2, INPUT_D10, 471);
 }
 
 #[tracing::instrument(level = "INFO", skip_all, fields(name = std::any::type_name::<F>()))]

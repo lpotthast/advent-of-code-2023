@@ -122,7 +122,7 @@ mod test_input {
     }
 
     #[bench(sample_count = SAMPLE_COUNT, sample_size = SAMPLE_SIZE)]
-    fn day9_part2() -> u64 {
+    fn day10_part2() -> u64 {
         day10::part2(black_box(INPUT_D10_TEST))
     }
 }

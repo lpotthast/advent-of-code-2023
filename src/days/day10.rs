@@ -1,3 +1,4 @@
+use core::panic;
 use petgraph::prelude::*;
 use std::collections::BTreeMap;
 use strum::IntoEnumIterator;
@@ -9,17 +10,8 @@ pub fn part1(input: &str) -> u64 {
     let mut tile_map = parse_input(input);
     let (mut g, mut mapping, (start_row, start_col)) = build_graph(&tile_map);
 
-    tracing::info!(start_row, start_col);
-    //tracing::info!(?g);
-    //tracing::info!(?tile_map);
-
-    // For each possible pipe which would connect both ends:
-    // Insert pipe and
-    // Check resulting path length is cyclic and store length.
-
     let candidates = {
         let start = tile_map.row(start_row).col(start_col);
-        tracing::info!(?start);
         Pipe::iter()
             .filter(|pipe| match pipe {
                 Pipe::Vertical => {
@@ -44,28 +36,15 @@ pub fn part1(input: &str) -> u64 {
             .collect::<Vec<_>>()
     };
 
-    tracing::info!(?candidates);
-
     for candidate in candidates {
         tile_map.update(start_row, start_col, Tile::Pipe(candidate));
         let start = tile_map.row(start_row).col(start_col);
         insert_node(&start, &mut mapping, &mut g, true);
     }
 
-    //tracing::info!(?g);
-    ////tracing::info!(?tile_map);
-
     let start_node = mapping[&[start_row, start_col]];
 
     let path = walk(&g, start_node);
-    tracing::info!(?path);
-
-    //let a = petgraph::algo::astar(&g, start_node, |n| n == start_node, |_e| 0, |_e| 0);
-    //tracing::info!(?a);
-    //
-    //for p in petgraph::algo::simple_paths::all_simple_paths::<Vec<_>, _>(&g, start_node, start_node, 1, None) {
-    //    tracing::info!(?p);
-    //}
     (path.len() / 2) as u64
 }
 
@@ -78,17 +57,8 @@ pub fn part2(input: &str) -> u64 {
         rev_mapping.insert(*v, *k);
     }
 
-    tracing::info!(start_row, start_col);
-    //tracing::info!(?g);
-    //tracing::info!(?tile_map);
-
-    // For each possible pipe which would connect both ends:
-    // Insert pipe and
-    // Check resulting path length is cyclic and store length.
-
     let candidates = {
         let start = tile_map.row(start_row).col(start_col);
-        tracing::info!(?start);
         Pipe::iter()
             .filter(|pipe| match pipe {
                 Pipe::Vertical => {
@@ -113,24 +83,19 @@ pub fn part2(input: &str) -> u64 {
             .collect::<Vec<_>>()
     };
 
-    tracing::info!(?candidates);
-
     for candidate in candidates {
         tile_map.update(start_row, start_col, Tile::Pipe(candidate));
         let start = tile_map.row(start_row).col(start_col);
         insert_node(&start, &mut mapping, &mut g, true);
     }
 
-    //tracing::info!(?g);
-    ////tracing::info!(?tile_map);
-
     let start_node = mapping[&[start_row, start_col]];
 
     let path = walk(&g, start_node);
-    tracing::info!(?path);
 
     let path_tiles = path.iter().map(|idx| rev_mapping.get(idx).unwrap()).collect::<Vec<_>>();
 
+    // Set any non-path tiles to `Ground`.
     for r in 1..tile_map.inner.len() - 1 {
         for c in 1..tile_map.inner[0].len() - 1 {
             if !path_tiles.contains(&&[r, c]) {
@@ -139,28 +104,47 @@ pub fn part2(input: &str) -> u64 {
         }
     }
 
-    tracing::info!(?tile_map);
+    let mut count_inner = 0;
 
-    fn is_inner_tile() -> bool {
-        false
+    fn is_inner_tile(tile_map: &TileMap, r: usize, c: usize) -> bool {
+        let cross_east = tile_map
+            .ray_east(r, c)
+            .filter(|t| t.is_pipe_and(|p| match p {
+                Pipe::Vertical => true,
+                Pipe::Horizontal => false,
+                Pipe::NorthEast => true, // L
+                Pipe::NorthWest => true, // J
+                Pipe::SouthWest => false, // 7
+                Pipe::SouthEast => false, // F
+            })).count();
+
+        let cross_west = tile_map
+            .ray_west(r, c)
+            .filter(|t| t.is_pipe_and(|p| match p {
+                Pipe::Vertical => true,
+                Pipe::Horizontal => false,
+                Pipe::NorthEast => true, // L
+                Pipe::NorthWest => true, // J
+                Pipe::SouthWest => false, // 7
+                Pipe::SouthEast => false, // F
+            })).count();
+
+        [cross_east, cross_west]
+             .iter()
+             .all(|it| *it % 2 != 0)
     }
 
     for r in 1..tile_map.inner.len() - 1 {
         for c in 1..tile_map.inner[0].len() - 1 {
-            let t = tile_map.row(r).col(c);
-            match t.itself() {
-                _ => is_inner_tile(),
+            if let Tile::Ground = tile_map.row(r).col(c).itself() {
+                if is_inner_tile(&tile_map, r, c) {
+                    count_inner += 1;
+                }
             }
         }
     }
 
-    //let a = petgraph::algo::astar(&g, start_node, |n| n == start_node, |_e| 0, |_e| 0);
-    //tracing::info!(?a);
-    //
-    //for p in petgraph::algo::simple_paths::all_simple_paths::<Vec<_>, _>(&g, start_node, start_node, 1, None) {
-    //    tracing::info!(?p);
-    //}
-    (path.len() / 2) as u64
+    count_inner as u64
 }
 
 fn walk(g: &Graph, start: NodeIndex) -> Vec<NodeIndex> {
@@ -170,7 +154,6 @@ fn walk(g: &Graph, start: NodeIndex) -> Vec<NodeIndex> {
     let mut path = Vec::new();
 
     loop {
-        //tracing::warn!(?path);
         let mut es = g.edges(n);
         let first = es.next().unwrap();
         let second = es.next().unwrap();
@@ -349,34 +332,15 @@ impl TileMap {
         self.rows().skip(row_idx - 1).next().expect("valid index")
     }
     fn update(&mut self, row: usize, col: usize, tile: Tile) {
-        tracing::warn!(cell = ?self.inner[row][col], "before");
         self.inner[row][col] = tile;
-        tracing::warn!(cell = ?self.inner[row][col], "after");
     }
 
-    //fn walk(&self, start_row: usize, start_col: usize) {
-    //    let mut seen = Vec::new();
-    //
-    //    let r = start_row;
-    //    let c = start_col;
-    //
-    //    while r !=  start_row && c != start_col && seen.is_empty() {
-    //        let cell = self.row(r).col(c);
-    //        match cell.itself().pipe() {
-    //            Some(p) => match p {
-    //                Pipe::Vertical => todo!(),
-    //                Pipe::Horizontal => todo!(),
-    //                Pipe::NorthEast => todo!(),
-    //                Pipe::NorthWest => todo!(),
-    //                Pipe::SouthWest => todo!(),
-    //                Pipe::SouthEast => todo!(),
-    //            },
-    //            None => panic!("Reached ground node..."),
-    //        }
-    //    }
-    //
-    //
-    //}
+    fn ray_east(&self, row: usize, col: usize) -> impl Iterator<Item = Tile> + '_ {
+        (col + 1..self.inner[row].len() - 1).map(move |c| self.inner[row][c])
+    }
+    fn ray_west(&self, row: usize, col: usize) -> impl Iterator<Item = Tile> + '_ {
+        (1..col).rev().map(move |c| self.inner[row][c])
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
