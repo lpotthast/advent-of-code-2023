@@ -39,7 +39,7 @@ impl Universe {
     /// * `input` - The full input to parse.
     /// * `empty_row_expansion` - Each empty row (without any galaxies) is interpreted as having a width of `1 + empty_row_expansion` rows.
     /// * `empty_col_expansion` - Each empty col (without any galaxies) is interpreted as having a height of `1 + empty_col_expansion` columns.
-    fn from_input(input: &str, empty_row_expansion: usize, empty_col_expansion: usize) -> Self {
+    fn from_input(input: &str, empty_row_expansion: u32, empty_col_expansion: u32) -> Self {
         let rows = input.lines().count();
         let cols = input.lines().next().map_or(0, |line| line.chars().count());
 
@@ -60,25 +60,24 @@ impl Universe {
 
         // Read galaxies.
         let mut galaxies = Vec::new();
-        for (r, line) in input.lines().enumerate() {
-            for (c, char) in line.chars().enumerate() {
-                match char {
-                    '#' => {
-                        let num_empty_rows_before = empty_rows.iter().take(r).filter(|e| **e).count();
-                        let num_empty_cols_before = empty_cols.iter().take(c).filter(|e| **e).count();
+        input.lines().enumerate().for_each(|(r, line)| {
+            line.chars().enumerate().for_each(|(c, char)| {
+                if char == '#' {
+                    let num_empty_rows_before =
+                        u32::try_from(empty_rows.iter().take(r).filter(|e| **e).count()).expect("no truncation");
+                    let num_empty_cols_before =
+                        u32::try_from(empty_cols.iter().take(c).filter(|e| **e).count()).expect("no truncation");
 
-                        let row_expansion = num_empty_rows_before * empty_row_expansion;
-                        let col_expansion = num_empty_cols_before * empty_col_expansion;
+                    let row_expansion = num_empty_rows_before * empty_row_expansion;
+                    let col_expansion = num_empty_cols_before * empty_col_expansion;
 
-                        galaxies.push(Galaxy {
-                            x: c + col_expansion,
-                            y: r + row_expansion,
-                        });
-                    }
-                    _ => {}
+                    galaxies.push(Galaxy {
+                        x: u32::try_from(c).expect("no truncation") + col_expansion,
+                        y: u32::try_from(r).expect("no truncation") + row_expansion,
+                    });
                 }
-            }
-        }
+            });
+        });
 
         Self { galaxies }
     }
@@ -103,18 +102,18 @@ impl Universe {
 
 #[derive(Debug, Clone, Copy)]
 struct Galaxy {
-    x: usize,
-    y: usize,
+    x: u32,
+    y: u32,
 }
 
 impl Galaxy {
-    fn manhattan_distance_tuple((g1, g2): (Galaxy, Galaxy)) -> u64 {
+    fn manhattan_distance_tuple((g1, g2): (Self, Self)) -> u64 {
         Self::manhattan_distance(g1, g2)
     }
 
-    fn manhattan_distance(g1: Galaxy, g2: Galaxy) -> u64 {
-        let x_diff_abs = (g2.x as i64 - g1.x as i64).abs() as u64;
-        let y_diff_abs = (g2.y as i64 - g1.y as i64).abs() as u64;
+    fn manhattan_distance(g1: Self, g2: Self) -> u64 {
+        let x_diff_abs = (i64::from(g2.x) - i64::from(g1.x)).unsigned_abs();
+        let y_diff_abs = (i64::from(g2.y) - i64::from(g1.y)).unsigned_abs();
         x_diff_abs + y_diff_abs
     }
 }

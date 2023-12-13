@@ -9,7 +9,7 @@ pub fn part1(input: &str) -> u64 {
 
     let start_replacement = find_candidates(&tile_map, tile_map.start_row, tile_map.start_col)
         .exactly_one()
-        .map_err(|_| ())
+        .map_err(|_err| ())
         .expect("exactly one candidate");
 
     tile_map.inner[[tile_map.start_row, tile_map.start_col]] = Tile::Pipe(start_replacement);
@@ -23,7 +23,7 @@ pub fn part2(input: &str) -> u64 {
 
     let start_replacement = find_candidates(&tile_map, tile_map.start_row, tile_map.start_col)
         .exactly_one()
-        .map_err(|_| ())
+        .map_err(|_err| ())
         .expect("exactly one candidate");
 
     tile_map.inner[[tile_map.start_row, tile_map.start_col]] = Tile::Pipe(start_replacement);
@@ -33,10 +33,7 @@ pub fn part2(input: &str) -> u64 {
     tile_map
         .inner
         .indexed_iter_mut()
-        .filter(|(_, tile)| match tile {
-            Tile::Ground => false,
-            _ => true,
-        })
+        .filter(|(_, tile)| !matches!(tile, Tile::Ground))
         .for_each(|((r, c), tile)| {
             if !path_map[[r, c]] {
                 *tile = Tile::Ground;
