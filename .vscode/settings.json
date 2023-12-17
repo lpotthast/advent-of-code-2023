@@ -5,6 +5,7 @@
         "ascii",
         "Ascii",
         "bitmask",
+        "cartesian",
         "itertools",
         "ncols",
         "ndarray",
